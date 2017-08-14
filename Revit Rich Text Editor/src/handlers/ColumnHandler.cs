@@ -203,7 +203,7 @@ namespace CTEK_Rich_Text_Editor
         double tableAdjustX = 0;
         double tableAdjustY = 0;
         //this method draws the complete outline around one cell (duplicate lines have to be made to account for table wrapping)
-        public void requestNewCellBox(double relX, double endRelX, double relY, double endRelY) //this needs to be called from a transaction
+        public void RequestNewCellBox(double relX, double endRelX, double relY, double endRelY) //this needs to be called from a transaction
         {
             double startX;
             double endX;

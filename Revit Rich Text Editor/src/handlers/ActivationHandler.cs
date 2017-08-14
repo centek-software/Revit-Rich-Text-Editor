@@ -27,12 +27,13 @@ namespace CTEK_Rich_Text_Editor
         public ActivationHandler(UIControlledApplication app)
         {
             this.app = app;
-			System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 
+            // This is needed b/c for some ungodly reason MS decided not to allow TLS > 1.0 by default??
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 		}
 
 
-        public int webserverResponse
+        public int WebserverResponse
         {
             get
             {
@@ -46,7 +47,7 @@ namespace CTEK_Rich_Text_Editor
         }
 
 
-        public void activateMc()
+        public void ActivateMc()
         {
             if (mcActivated)
                 return;
@@ -58,21 +59,21 @@ namespace CTEK_Rich_Text_Editor
             worker.Start();
         }
 
-        public void logout()
+        public void Logout()
         {
             Properties.Settings.Default.loggedIn = false;
             Properties.Settings.Default.username = "";
             Properties.Settings.Default.password = "";
-            Properties.Settings.Default.guid = guid;
+            Properties.Settings.Default.guid = UniqueId;
 
             Properties.Settings.Default.Save();
 
             myWebserverResponse = 0;
 
-            endSession();
+            EndSession();
         }
 
-        public void endSession()
+        public void EndSession()
         {
             string intro = "END SESH";
             DebugHandler.println(intro, "Ending session... ");
@@ -86,10 +87,10 @@ namespace CTEK_Rich_Text_Editor
             // Contact the web server
             using (WebClient wc = new WebClient())
             {
-                setHeaders(wc);
+                SetHeaders(wc);
 
                 NameValueCollection data = new NameValueCollection();
-                data["guid"] = guid;
+                data["guid"] = UniqueId;
 
                 byte[] responseArr;
                 try
@@ -107,24 +108,33 @@ namespace CTEK_Rich_Text_Editor
             }
         }
 
-        public int getWebserverResponse(string username, string password, string guid)
+        public int GetWebserverResponse(string username, string password, string guid)
         {
+            // This bypasses the server as a backup in case something breaks
             if (HashHandler.VerifyMd5Hash(username, password))
                 return 1;
+
+#if DEBUG
+            // If you are running in debug mode then we allow this simple override so you don't
+            // need to pay for a license
+            if (username == "username" && password == "password")
+                return 1;
+#endif
 
             DebugHandler.println("ACTIVATE", "Getting web server response");
             // Contact the web server
             using (WebClient wc = new WebClient())
             {
-                setHeaders(wc);
+                SetHeaders(wc);
 
-                NameValueCollection data = new NameValueCollection();
-                data["username"] = username;
-                data["password"] = password;
-                data["guid"] = guid;
-                data["version"] = MainRevitProgram.VERSION + "";
-                data["identity"] = Environment.UserName + "@" + Environment.UserDomainName + @"\" + Environment.MachineName;
-
+                NameValueCollection data = new NameValueCollection
+                {
+                    ["username"] = username,
+                    ["password"] = password,
+                    ["guid"] = guid,
+                    ["version"] = MainRevitProgram.VERSION + "",
+                    ["identity"] = Environment.UserName + "@" + Environment.UserDomainName + @"\" + Environment.MachineName
+                };
                 byte[] responseArr;
                 try
                 {
@@ -155,7 +165,7 @@ namespace CTEK_Rich_Text_Editor
             }
         }
 
-        private static void setHeaders(WebClient wc)
+        private static void SetHeaders(WebClient wc)
         {
             wc.Headers.Add("Accept-Language", " en-US");
             wc.Headers.Add("Accept", " text/html, application/xhtml+xml, */*");
@@ -163,13 +173,13 @@ namespace CTEK_Rich_Text_Editor
             wc.Headers.Add("User-Agent", "CentekRTE/" + MainRevitProgram.GetAppVersion() + " (+software.centekeng.com)");
         }
 
-        private void attemptActivation(string username, string password, string guid)
+        private void AttemptActivation(string username, string password, string guid)
         {
             string intro = "ACTIVATE";
             DebugHandler.println(intro, "Attempting activation");
 
-            int response = getWebserverResponse(username, password, guid);
-            webserverResponse = response;
+            int response = GetWebserverResponse(username, password, guid);
+            WebserverResponse = response;
 
             /**
              * Possible responses:
@@ -218,12 +228,12 @@ namespace CTEK_Rich_Text_Editor
             completedFirstActivation = true;
         }
 
-        public int attemptFirstLogin(string username, string password)
+        public int AttemptFirstLogin(string username, string password)
         {
             string guid = Guid.NewGuid().ToString();
 
-            int response = getWebserverResponse(username, password, guid);
-            webserverResponse = response;
+            int response = GetWebserverResponse(username, password, guid);
+            WebserverResponse = response;
 
             if (response != 1 && response != 3)
                 return response;
@@ -241,21 +251,15 @@ namespace CTEK_Rich_Text_Editor
             return response;
         }
 
-        public void attemptActivation()
+        public void AttemptActivation()
         {
-            //bool loggedIn = Properties.Settings.Default.loggedIn;
-
-            //string username = Properties.Settings.Default.username;
-            //string password = DataProtectionExtensions.decryptPassword(Properties.Settings.Default.password);
-            //string guid = Properties.Settings.Default.guid;
-
-            if (!loggedIn || password == null)
+            if (!LoggedIn || Password == null)
                 return;
 
-            attemptActivation(username, password, guid);
+            AttemptActivation(Username, Password, UniqueId);
         }
 
-        public bool loggedIn
+        public bool LoggedIn
         {
             get
             {
@@ -263,7 +267,7 @@ namespace CTEK_Rich_Text_Editor
             }
         }
 
-        public string username
+        public string Username
         {
             get
             {
@@ -271,7 +275,7 @@ namespace CTEK_Rich_Text_Editor
             }
         }
 
-        public string password
+        public string Password
         {
             get
             {
@@ -279,7 +283,7 @@ namespace CTEK_Rich_Text_Editor
             }
         }
 
-        public string guid
+        public string UniqueId
         {
             get
             {
@@ -305,7 +309,7 @@ namespace CTEK_Rich_Text_Editor
             {
                 if (!activationHandler.completedFirstActivation || (ActivationHandler.activated && activationHandler.hasSession))
                 {
-                    activationHandler.attemptActivation();
+                    activationHandler.AttemptActivation();
                 }
 
                 Thread.Sleep(1000 * 60 * 2);

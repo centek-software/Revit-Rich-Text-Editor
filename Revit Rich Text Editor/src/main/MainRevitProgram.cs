@@ -80,7 +80,7 @@ namespace CTEK_Rich_Text_Editor
 
             activationHandler = new ActivationHandler(app);
             //activationHandler.attemptActivation();
-            activationHandler.activateMc();
+            activationHandler.ActivateMc();
 
 
             string tabName = "Centek";
@@ -160,7 +160,7 @@ namespace CTEK_Rich_Text_Editor
 
         public Result OnShutdown(UIControlledApplication application)
         {
-            activationHandler.endSession();
+            activationHandler.EndSession();
 
             //mainForm.browser.Dispose();
             //mainForm.Dispose();

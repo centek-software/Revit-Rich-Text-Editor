@@ -64,7 +64,9 @@ namespace CTEK_Rich_Text_Editor
                 transGroup.Start();
                 //===
 
-                // Warn user if making a tiny note. Magic numbers and sort of arbitrary.
+                // Warn user if making a tiny note
+                // This is because we got lots of questions when people did this and it spit out garbage
+                // Uses magic numbers and is pretty arbitrary.
 
                 // Forces the creation of these styles
                 textTools.DefaultTextNoteType(TextTools.TextStyle.H1);

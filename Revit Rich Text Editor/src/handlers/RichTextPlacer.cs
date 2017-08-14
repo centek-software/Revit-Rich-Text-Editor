@@ -524,7 +524,7 @@ namespace CTEK_Rich_Text_Editor
                                 for (int i = 0; i < tableCells.Count; i++) //draw all the table lines (bottom and right)
                                 {
                                     Cell cell = tableCells[i];
-                                    ch.requestNewCellBox(cell.colStart, cell.colEnd, cell.yStart, cell.yEnd);
+                                    ch.RequestNewCellBox(cell.colStart, cell.colEnd, cell.yStart, cell.yEnd);
                                 }
                                 tr.Commit();
                             }

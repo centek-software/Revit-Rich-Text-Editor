@@ -39,20 +39,20 @@ namespace CTEK_Rich_Text_Editor
             InitializeComponent();
             this.activationHandler = activationHandler;
 
-            int result = activationHandler.webserverResponse;
+            int result = activationHandler.WebserverResponse;
 
             usernameBox.KeyDown += new KeyEventHandler(TextBox_KeyDown);
             passwordBox.KeyDown += new KeyEventHandler(TextBox_KeyDown);
 
 
-            if (activationHandler.loggedIn)
+            if (activationHandler.LoggedIn)
             {
                 activateText.Text = ProcessText(result);
 
                 MarkButtonLoggedIn(result == 1 || result == 3);
 
-                usernameBox.Text = activationHandler.username;
-                passwordBox.Text = activationHandler.password;
+                usernameBox.Text = activationHandler.Username;
+                passwordBox.Text = activationHandler.Password;
             }
         }
 
@@ -77,7 +77,7 @@ namespace CTEK_Rich_Text_Editor
                 passwordBox.Enabled = false;
                 activateButton.Text = "Logging in...";
 
-                int result = activationHandler.attemptFirstLogin(usernameBox.Text, passwordBox.Text);
+                int result = activationHandler.AttemptFirstLogin(usernameBox.Text, passwordBox.Text);
                 activateText.Text = ProcessText(result);
 
                 MarkButtonLoggedIn(result == 1 || result == 3);
@@ -89,7 +89,7 @@ namespace CTEK_Rich_Text_Editor
 
                 activateText.Text = ProcessText(0);
 
-                activationHandler.logout();
+                activationHandler.Logout();
             }
         }
 
@@ -102,7 +102,7 @@ namespace CTEK_Rich_Text_Editor
                 usernameBox.Enabled = false;
                 passwordBox.Enabled = false;
                 activateButton.Text = "Log Out";
-                guid.Text = activationHandler.guid;
+                guid.Text = activationHandler.UniqueId;
             }
             else
             {
