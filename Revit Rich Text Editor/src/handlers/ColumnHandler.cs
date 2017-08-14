@@ -135,7 +135,6 @@ namespace CTEK_Rich_Text_Editor
         public void RequestDrawImage(string htmlData, double relX, double relY, int widthPixels, int heightPixels)
         {
             int scale = masterView.Scale;
-            //newMasterNoteIIs.Add(new IIImage(new XYZ(relX, relY, 0), ImageHandler.pixelsToFeet(width, scale), ImageHandler.pixelsToFeet(height, scale), htmlData, width, height));
             CheckNeedsColumn(relY, ImageHandler.pixelsToFeet(heightPixels, scale));
             ActuallyDrawImage(htmlData, relX + adjustX, relY + adjustY, widthPixels, heightPixels);
         }
@@ -150,7 +149,6 @@ namespace CTEK_Rich_Text_Editor
         public double RequestDrawText(string textString, double relX, double relY, TextNoteType textType, TextTools.TextScriptType textScript)
         {
             //DebugHandler.println("CH", "Text:[" + textString + "] RelY: [" + relY + "]");
-            //double width = TextTools.stringWidth(uidoc, textString, textType, true, masterView.Scale);
             double height = TextTools.textHeight(textType) * masterView.Scale * TEXT_SPACING;
 
             CheckNeedsColumn(relY, height);
@@ -170,9 +168,9 @@ namespace CTEK_Rich_Text_Editor
         /// <summary>
         /// Requests that we make a new column for all future elements
         /// </summary>
-        public void RequestNewColumn()
+        public void RequestNewColumn(double relY)
         {
-            colBreak = true;
+            // colBreak = true;
         }
 
         //because table lines are drawn at the very end of the table rendering we have to do our own independent wrapping
@@ -201,36 +199,53 @@ namespace CTEK_Rich_Text_Editor
             {
                 UIApplication uiapp = uidoc.Application;
                 View view = uidoc.Document.ActiveView;
-                DetailCurve lineBottom = MakeLine(uiapp, view, startX, endY, endX, endY); //bottom line
-                DetailCurve lineRight = MakeLine(uiapp, view, endX, startY, endX, endY); //right line
+                DetailCurve lineBottom = MakeLine(uiapp, view, startX, endY, endX, endY); // bottom line
+                DetailCurve lineRight = MakeLine(uiapp, view, endX, startY, endX, endY); // right line
                 newMasterNoteElements.Add(lineBottom.Id);
                 newMasterNoteElements.Add(lineRight.Id);
 
-                DetailCurve lineTop = MakeLine(uiapp, view, startX, startY, endX, startY); //top line
-                DetailCurve lineLeft = MakeLine(uiapp, view, startX, startY, startX, endY); //left line
+                DetailCurve lineTop = MakeLine(uiapp, view, startX, startY, endX, startY); // top line
+                DetailCurve lineLeft = MakeLine(uiapp, view, startX, startY, startX, endY); // left line
                 newMasterNoteElements.Add(lineTop.Id);
                 newMasterNoteElements.Add(lineLeft.Id);
             }
         }
 
-        private void CheckNeedsColumn(double upperLeftY, double height)
+        //private void CheckNeedsColumn(double upperLeftY, double height)
+        //{
+        //    if (-upperLeftY - adjustY > tnt.colHeight - height || colBreak)       // Time to wrap!
+        //    {
+        //        col++;
+        //        adjustX += tnt.colWidth + tnt.colSep;
+        //        adjustY = -upperLeftY;
+        //        colBreak = false;
+        //    }
+        //}
+        
+        // Represents the position within the imaginary unwrapped note where the column begins
+        private List<double> columnStartPositions = new List<double>();
+
+        /// <summary>
+        /// Gets the actual position where we have to draw the element after taking wrapping into consideration.
+        /// Assumes note position is (0,0). Origin handling is elsewhere.
+        /// </summary>
+        /// <param name="requestedY">The starting height of the item</param>
+        /// <param name="height">Used to wrap if necessary</param>
+        /// <returns></returns>
+        private XYZ GetActualPosition(double requestedY, double height)
         {
-            if (-upperLeftY - adjustY > tnt.colHeight - height || colBreak)       // Time to wrap!
-            {
-                col++;
-                adjustX += tnt.colWidth + tnt.colSep;
-                adjustY = -upperLeftY;
-                colBreak = false;
-            }
+            int actualCol = startCol + (int) (requestedY / (tnt.colHeight - height));
+            double adjustX = (tnt.colWidth + tnt.colSep) * actualCol;
+            
         }
 
 
         // == STUFF FROM actuallyDrawElements == //
-        int col = 0;
-        // How much to additionally adjust the note position
-        double adjustX = 0;     // This is going to offset so we are in the correct X position for the column
-        double adjustY = 0;     // This pulls the text up because otherwise it would still be drawn at the Y position directly under the last column
-        bool colBreak = false;
+        //int col = 0;
+        //// How much to additionally adjust the note position
+        //double adjustX = 0;     // This is going to offset so we are in the correct X position for the column
+        //double adjustY = 0;     // This pulls the text up because otherwise it would still be drawn at the Y position directly under the last column
+        //bool colBreak = false;
         
 
         /// <summary>
@@ -307,7 +322,7 @@ namespace CTEK_Rich_Text_Editor
                 throw new Exception("WE CANNOT DRAW EMPTY STRINGS");
 
             double height = TextTools.textHeight(textType);
-            double subscriptOffsetY = 2.3 * masterView.Scale * height; //2.3 is how far down to draw the text (kind of arbitrary but looks fine)
+            double subscriptOffsetY = 2.3 * masterView.Scale * height; // 2.3 is how far down to draw the text (kind of arbitrary but looks fine)
             if (textScript == TextTools.TextScriptType.SUBSCRIPT)
                 relY -= subscriptOffsetY;
 
@@ -327,7 +342,6 @@ namespace CTEK_Rich_Text_Editor
                 switch (RevitVersionHandler.GetRevitVersion())
                 {
                     case 2015:
-                        //textNote = uidoc.Document.Create.NewTextNote(masterView, pLoc, XYZ.BasisX, XYZ.BasisY, width, TextAlignFlags.TEF_ALIGN_LEFT | TextAlignFlags.TEF_ALIGN_TOP, textString);
                         textNote = CreateTextNoteWrapper2015(masterView, pLoc, oversizeWidth, textString);
                         textNote.TextNoteType = textType;
                         textNote.Width = oversizeWidth;
@@ -336,9 +350,9 @@ namespace CTEK_Rich_Text_Editor
                     case 2016:
                     case 2017:
                     default:
-                        // Temporary Reflection hack
+                        // Temporary Reflection hack:
                         textNote = (TextNote) RevitVersionHandler.CreateTextNote2016.Invoke(null, new object[] { uidoc.Document, masterView.Id, pLoc, textString, textType.Id });
-                        // What it should actually be
+                        // What it should actually be:
                         //textNote = TextNote.Create(uidoc.Document, masterView.Id, pLoc, textString, textType.Id);
                         break;
                 }
@@ -353,7 +367,6 @@ namespace CTEK_Rich_Text_Editor
                 sampleElement = textNote.Id;
 
                 sampleElementDeltaOrigin = new XYZ(relX, relY, 0);
-                //DebugHandler.println("CH", "Setting delta origin X:" + sampleElementDeltaOrigin.X + " Y:" + sampleElementDeltaOrigin.Y + " addY:" + addY + " relY:" + relY + " subOffY:" + subscriptOffsetY);
             }
 
             newMasterNoteElements.Add(textNote.Id);
@@ -373,7 +386,8 @@ namespace CTEK_Rich_Text_Editor
 
                 case 2017:
                 default:
-                    // 2015: This is the entire width of the note; Not what we want
+                    // I hate Revit:
+                    // 2015: This is the entire width of the note, not the text
                     // 2016: Exact width of the text but spaces are trimmed
                     // 2017: Exact width of the text including preceding and trailing spaces
                     contentWidth = textNote.Width * uidoc.ActiveGraphicalView.Scale;
@@ -390,6 +404,7 @@ namespace CTEK_Rich_Text_Editor
 
         // The .NET VM realizes that the function inside here doesn't exist when used in Revit 2017,
         // but it doesn't notice it if we encapsulate it in another function.
+        // #kludge
         private TextNote CreateTextNoteWrapper2015(View masterView, XYZ pLoc, double width, string textString)
         {
             return uidoc.Document.Create.NewTextNote(masterView, pLoc, XYZ.BasisX, XYZ.BasisY, width, TextAlignFlags.TEF_ALIGN_LEFT | TextAlignFlags.TEF_ALIGN_TOP, textString);

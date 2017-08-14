@@ -21,6 +21,8 @@ namespace CTEK_Rich_Text_Editor
     /// <summary>
     /// Places rich text html, although it is in a single, very long column.
     /// Column Handler handles moving the elements to their correct column positions
+    /// 
+    /// TODO: This class is begging to be refactored
     /// </summary>
     class RichTextPlacer
     {
@@ -33,7 +35,8 @@ namespace CTEK_Rich_Text_Editor
         private ColumnHandler ch;
         private TextTools tt;
 
-        //Due to a revit restriction, you can't have both custom bullets and images or tables and images. So uhh... these variables prevent it
+        // Due to a revit restriction, you can't have both custom bullets and images or tables and images.
+        // These vars prevent it
         private bool customBulletEncountered = false;
         private bool imageEncountered = false;
         private bool tableEncountered = false;
@@ -42,18 +45,18 @@ namespace CTEK_Rich_Text_Editor
 
         private string lastPlacedText = "";
         private string bulletId = "";
-        private List<List<Cell>> table; //a matrix representation of a table. 
+        private List<List<Cell>> table; // a matrix representation of a table. 
         private int tableRow;
         private int tableCol;
 
-        private List<Cell> tableCells; //a one dimensional array holding all unique table cells
+        private List<Cell> tableCells; // a one dimensional array holding all unique table cells
         
-        //stacks for holding tables to allow tables inside tables inside tables... 
+        // stacks for holding tables to allow tables inside tables inside tables... 
         private Stack<List<List<Cell>>> tableStack;
         private Stack<List<Cell>> tableCellStack;
-        private bool renderingTable; //confirmation to see if a table is already being rendered
+        private bool renderingTable; // confirmation to see if a table is already being rendered
 
-        private enum BulletStyle { KAPUSTA, NUMBER, LOWER_ALPHA, UPPER_ALPHA, LOWER_ROMAN, UPPER_ROMAN, WHITE_CIRCLE, BLACK_CIRCLE, SQUARE, CIRCLED_NUMBER };
+        private enum BulletStyle { NONE, NUMBER, LOWER_ALPHA, UPPER_ALPHA, LOWER_ROMAN, UPPER_ROMAN, WHITE_CIRCLE, BLACK_CIRCLE, SQUARE, NUMBER_CUSTOM };
 
         public RichTextPlacer(string html, UIDocument uidoc, FundamentalProps tnp, int viewScale, ColumnHandler ch, Element masterNote)
         {
@@ -66,7 +69,7 @@ namespace CTEK_Rich_Text_Editor
             tableStack = new Stack<List<List<Cell>>>();
             tableCellStack = new Stack<List<Cell>>();
 
-            html = html.Replace("&nbsp;", " ");     // This simplification is necessary to handle underlining with mulitple consecutive spaces between 2 words
+            html = html.Replace("&nbsp;", " ");     // This simplification is to handle underlining with mulitple consecutive spaces between 2 words
 
             html = "<root>\n" + html + "\n</root>";     // Throw everything inside a root element (as per XML spec)
 
@@ -96,10 +99,9 @@ namespace CTEK_Rich_Text_Editor
             double relStartX = 0;
             double relStartY = 0;
 
-            Parse(root, ref colStartX, ref colEndX, ref colStartY, ref relStartX, ref relStartY, false, false, false, false, tnt, BulletStyle.KAPUSTA, -1, 0, false, false, 0, 0);
+            Parse(root, ref colStartX, ref colEndX, ref colStartY, ref relStartX, ref relStartY, false, false, false, false, tnt, BulletStyle.NONE, -1, 0, false, false, 0, 0);
         }
-
-        // colstartX and colStartY NOT always == 0
+        
         private void Parse(XmlNode node, ref double colStartX, ref double colEndX, ref double colStartY,
             ref double relStartX, ref double relStartY, bool bold, bool italic, bool underline, bool strike,
             TextNoteType textType, BulletStyle bulletStyle, int bulletCount, int bulletLevel, bool super, bool sub, double tableWidth, int tableheightInt)
@@ -126,7 +128,9 @@ namespace CTEK_Rich_Text_Editor
                 }
             }
 
-            double INDENT = TextTools.stringWidthApprox(uidoc, "999.", textType, false, viewScale);      // How wide to make the indentations
+            // How wide to make the indentations
+            // Just the width of a 3 digit number (Let's just hope nobody has 1000 bullets...)
+            double INDENT = TextTools.stringWidthApprox(uidoc, "999.", textType, false, viewScale);
             int indentations = 0;   // How many indentations we should make
 
             // Handle indented paragraphs
@@ -173,7 +177,6 @@ namespace CTEK_Rich_Text_Editor
                     goto theParsing;
 
                 case "underline":
-                //case "u":
                     underline = true;
                     goto theParsing;
 
@@ -240,9 +243,7 @@ namespace CTEK_Rich_Text_Editor
                         string toBeOrNotToBe = curLine + word;
 
                         double proposedWidth = TextTools.stringWidthApprox(uidoc, toBeOrNotToBe, textType, false, viewScale);
-
-                        //TaskDialog.Show("Rich Text Editor", "[" + toBeOrNotToBe + "] is [" + (colStartX + relStartX + proposedWidth) + "] colEndX[" + colEndX + "]");
-
+                        
                         if (colStartX + relStartX + proposedWidth > colEndX)
                         {
                             // Make the note using the text from CURLINE at (colStartX + relStartX, colStartY - relStartY)
@@ -255,8 +256,7 @@ namespace CTEK_Rich_Text_Editor
 
                             if (!allWhite)
                                 MakeTextNote(curLine, colStartX + relStartX, colStartY - relStartY, textType, textscript);
-
-
+                            
                             // Reset the position for the next line
                             Newline(ref colStartX, ref colEndX, ref colStartY, ref relStartX, ref relStartY, textType);
 
@@ -281,7 +281,6 @@ namespace CTEK_Rich_Text_Editor
                         double width = MakeTextNote(curLine, colStartX + relStartX, colStartY - relStartY, textType, textscript);
 
                         // Update the relative position by adding the text width
-                        //double width = TextTools.stringWidthApprox(uidoc, curLine, textType, false, viewScale);
                         relStartX += width;
                     }
 
@@ -340,20 +339,27 @@ namespace CTEK_Rich_Text_Editor
 
                 case "li":
 
-                    if (bulletStyle != BulletStyle.CIRCLED_NUMBER) //check if it is a regular bullet
+                    if (bulletStyle != BulletStyle.NUMBER_CUSTOM)  // check if it is a regular bullet
                     {
                         string bullet = GetBullet(bulletStyle, bulletCount);
                         MakeTextNote(bullet, colStartX + relStartX, colStartY - relStartY, textType, TextTools.TextScriptType.REGULAR);
                     }
-                    else //if not then draw the annotation stuff
+                    else  // if not then draw the annotation stuff
                     {
                         if (!imageEncountered)
                         {
                             customBulletEncountered = true;
                             string bullet = GetBullet(bulletStyle, bulletCount);
-                            MakeAnnotationSymbol(bulletId, colStartX + relStartX, colStartY - relStartY - (ColumnHandler.TEXT_SPACING * TextTools.textHeight(textType) * viewScale) / 2, bullet, TextTools.textHeight(textType) * viewScale * ColumnHandler.TEXT_SPACING, colStartY - relStartY);
+                            MakeAnnotationSymbol(
+                                bulletId,
+                                colStartX + relStartX,
+                                colStartY - relStartY - (ColumnHandler.TEXT_SPACING * TextTools.textHeight(textType) * viewScale) / 2,
+                                bullet,
+                                TextTools.textHeight(textType) * viewScale * ColumnHandler.TEXT_SPACING,
+                                colStartY - relStartY
+                            );
                         }
-                        else if(!customBulletEncountered) //if there is an image drawn
+                        else if (!customBulletEncountered)  // if there is an image drawn
                         {
                             MessageBox.Show("Due to a Revit restriction, custom bullets and images can not be used in the same text note.", "Error:");
                             customBulletEncountered = true;
@@ -366,7 +372,26 @@ namespace CTEK_Rich_Text_Editor
                     double liColStartX = colStartX + INDENT;
                     foreach (XmlNode child in node.ChildNodes)
                     {
-                        Parse(child, ref liColStartX, ref colEndX, ref colStartY, ref relStartX, ref relStartY, bold, italic, underline, strike, textType, bulletStyle, bulletCount, bulletLevel, super, sub, 0, 0);
+                        Parse(
+                            child,
+                            ref liColStartX,
+                            ref colEndX,
+                            ref colStartY,
+                            ref relStartX,
+                            ref relStartY,
+                            bold,
+                            italic,
+                            underline,
+                            strike,
+                            textType,
+                            bulletStyle,
+                            bulletCount,
+                            bulletLevel,
+                            super,
+                            sub,
+                            0,
+                            0
+                        );
 
                         lastWasBr = (child.Name.Equals("br"));
                         lastWasLi = (child.Name.Equals("ul") || child.Name.Equals("ol"));
@@ -436,7 +461,7 @@ namespace CTEK_Rich_Text_Editor
                         //fix all the widths because tinymce doesn't really calculate widths correctly on merged cells
                         Stopwatch sw = new Stopwatch();
                         sw.Start();
-                        if (fixTableWidths(noteWidth)) //fixtablewidths will return false on failure, only continue if true
+                        if (FixTableWidths(noteWidth)) //fixtablewidths will return false on failure, only continue if true
                         {
                             sw.Stop();
                             DebugHandler.println("RTP", "Elapsed time in table widths: " + sw.Elapsed);
@@ -566,7 +591,26 @@ namespace CTEK_Rich_Text_Editor
 
                         foreach (XmlNode child in node.ChildNodes)
                         {
-                            Parse(child, ref colStartX, ref colEndX, ref colStartY, ref relStartX, ref relStartY, bold, italic, underline, strike, textType, bulletStyle, bulletCount, bulletLevel, super, sub, tableWidth, tableheightInt);
+                            Parse(
+                                child,
+                                ref colStartX,
+                                ref colEndX,
+                                ref colStartY,
+                                ref relStartX,
+                                ref relStartY,
+                                bold,
+                                italic,
+                                underline,
+                                strike,
+                                textType,
+                                bulletStyle,
+                                bulletCount,
+                                bulletLevel,
+                                super,
+                                sub,
+                                tableWidth,
+                                tableheightInt
+                            );
                         }
                         colStartX = originalColStartX;
                     }
@@ -574,10 +618,10 @@ namespace CTEK_Rich_Text_Editor
 
                 case "td":
                     double tempRelStartY = relStartY;
-                    double cellWidth = tableWidth; //set each cell to the precalculated cell size
+                    double cellWidth = tableWidth;  // set each cell to the precalculated cell size
                     int rowspan = 1;
                     int colspan = 1;
-                    foreach (XmlAttribute att in node.Attributes)// getting the attributes of the <tr> (width)
+                    foreach (XmlAttribute att in node.Attributes)  // getting the attributes of the <tr> (width)
                     {
                         if (att.Name.Equals("style"))
                         {
@@ -587,18 +631,18 @@ namespace CTEK_Rich_Text_Editor
                             {
                                 if (trait.Contains("width:"))
                                 {
-                                    cellWidth = Int32.Parse(Regex.Replace(trait, @"[^\d]", ""));//regex replace all but the numbers
-                                    cellWidth = ImageHandler.pixelsToFeet((int)cellWidth, viewScale); //convert to feet
+                                    cellWidth = Int32.Parse(Regex.Replace(trait, @"[^\d]", ""));  // regex replace all but the numbers
+                                    cellWidth = ImageHandler.pixelsToFeet((int)cellWidth, viewScale);  // convert to feet
                                 }
                             }
                         }
                         if (att.Name.Equals("rowspan"))
                         {
-                            rowspan = int.Parse(att.Value); //assign rowspan to value to be used later
+                            rowspan = int.Parse(att.Value);  // assign rowspan to value to be used later
                         }
                         if (att.Name.Equals("colspan"))
                         {
-                            colspan = int.Parse(att.Value); //assign colspan to value to be used later
+                            colspan = int.Parse(att.Value);  // assign colspan to value to be used later
                         }
                     }
 
@@ -606,21 +650,21 @@ namespace CTEK_Rich_Text_Editor
 
                     double additionalWidth = 0;
                     int cellsFilled = 0;
-                    while (cellsFilled < colspan) //calculate additional displacement needed according to vertically merged cells
+                    while (cellsFilled < colspan)  // calculate additional displacement needed according to vertically merged cells
                     {
-                        if (table[tableRow].Count < tableCol + 1) //if the end of the list is reached, add a new cell
+                        if (table[tableRow].Count < tableCol + 1)  // if the end of the list is reached, add a new cell
                         {
                             table[tableRow].Add(currentCell);
                             cellsFilled++;
                             tableCol++;
                         }
-                        else if (table[tableRow][tableCol] == null) //if there is no cell associated (created by rowspan)
+                        else if (table[tableRow][tableCol] == null)  // if there is no cell associated (created by rowspan)
                         {
                             table[tableRow][tableCol] = currentCell;
                             cellsFilled++;
                             tableCol++;
                         }
-                        else //if there is a width associated
+                        else  // if there is a width associated
                         {
                             additionalWidth += table[tableRow][tableCol].width;
                             tableCol = table[tableRow][tableCol].colNumEnd + 1;
@@ -629,7 +673,7 @@ namespace CTEK_Rich_Text_Editor
                     colStartX += additionalWidth;
                     colEndX = colStartX + cellWidth;
 
-                    for (int i = 1; i < rowspan; i++) //deal with vertically merged cells
+                    for (int i = 1; i < rowspan; i++)  // deal with vertically merged cells
                     {
                         int currentTableRow = i + tableRow;
                         if (table.Count < currentTableRow + 1)
@@ -639,29 +683,29 @@ namespace CTEK_Rich_Text_Editor
                         
                         for (int j = 0; j < tableCol - 1; j++)
                         {
-                            if (colspan > 1 && j >= tableCol - colspan && j <= tableCol - 1) //if the current table col falls under the table col of the merged cell
+                            if (colspan > 1 && j >= tableCol - colspan && j <= tableCol - 1)  // if the current table col falls under the table col of the merged cell
                             {
-                                if (table[currentTableRow].Count < j + 1) //add another cell
+                                if (table[currentTableRow].Count < j + 1)  // add another cell
                                 {
                                     table[currentTableRow].Add(currentCell);
                                 }
-                                else if (table[currentTableRow][j] == null) //change value of the cell
+                                else if (table[currentTableRow][j] == null)   // change value of the cell
                                 {
                                     table[currentTableRow][j] = currentCell;
                                 }
                             }
                             else
                             {
-                                if (table[currentTableRow].Count < j + 1) //add another placeholder cell
+                                if (table[currentTableRow].Count < j + 1)  // add another placeholder cell
                                 {
                                     table[currentTableRow].Add(null);
                                 }
                             }
-                            
                         }
 
-                        //give a reference to the vertically merged cell in the correct position at the end
-                        if(table[currentTableRow].Count < tableCol - 1 + 1) //-1 + 1 instead of 0 because I want to show: tableCol - 1 is the column of the cell, add one to correctly compare with table count
+                        // give a reference to the vertically merged cell in the correct position at the end
+                        // -1 + 1 instead of 0 because I want to show: tableCol - 1 is the column of the cell, add one to correctly compare with table count
+                        if (table[currentTableRow].Count < (tableCol - 1) + 1)
                         {
                             table[currentTableRow].Add(currentCell);
                         }
@@ -680,9 +724,6 @@ namespace CTEK_Rich_Text_Editor
                     currentCell.colEnd = colEndX;
                     currentCell.nodes = node.ChildNodes;
                     tableCells.Add(currentCell);
-
-
-                    //relStartX = 0;
                     
                     colStartX = colEndX;
                     //printTable(0);
@@ -740,8 +781,7 @@ namespace CTEK_Rich_Text_Editor
                         }
 
                         ch.RequestDrawImage(html, colStartX + relStartX, colStartY - relStartY, w, h);
-
-
+                        
                         relStartY += ImageHandler.pixelsToFeet(h, viewScale);
                         relStartY -= TextTools.textHeight(textType) * 1.5 * viewScale;
                         relStartX += ImageHandler.pixelsToFeet(w, viewScale);
@@ -749,7 +789,6 @@ namespace CTEK_Rich_Text_Editor
                     else if(!imageEncountered)
                     {
                         imageEncountered = true;
-                        MessageBox.Show("Due to a Revit restriction, tables or custom bullets can not be used in the same text note as images.", "Error:");
                     }
                     break;
 
@@ -760,7 +799,7 @@ namespace CTEK_Rich_Text_Editor
                         DebugHandler.println("RTP", bulletId);
                     }
                     else if (node.Value.Trim().Equals("pagebreak"))
-                        ch.RequestNewColumn();
+                        ch.RequestNewColumn(colStartY - relStartY);
 
                     break;
 
@@ -779,6 +818,7 @@ namespace CTEK_Rich_Text_Editor
                     }
 
                     // Otherwise they were equal, ergo the decode failed (e.g. &fuck; --> &fuck;), so it's an unhandled node tag.
+                    // If you encounter this, BigConsts.XML_ENTITIES might be missing something
 
                     TaskDialog.Show("WARN", "[WARN] Unhandled Node Tag <" + node.Name + "><" + node.Value + ">");
                     //Console.WriteLine("[WARN] Unhandled Node Tag <" + node.Name + ">");
@@ -792,7 +832,26 @@ namespace CTEK_Rich_Text_Editor
 
             foreach (XmlNode child in node.ChildNodes)
             {
-                Parse(child, ref myColStartX, ref colEndX, ref colStartY, ref relStartX, ref relStartY, bold, italic, underline, strike, textType, bulletStyle, bulletCount, bulletLevel, super, sub, 0, 0);
+                Parse(
+                    child,
+                    ref myColStartX,
+                    ref colEndX,
+                    ref colStartY,
+                    ref relStartX,
+                    ref relStartY,
+                    bold,
+                    italic,
+                    underline,
+                    strike,
+                    textType,
+                    bulletStyle,
+                    bulletCount,
+                    bulletLevel,
+                    super,
+                    sub,
+                    0,
+                    0
+                );
             }
 
             if (newlineAfter)
@@ -802,16 +861,16 @@ namespace CTEK_Rich_Text_Editor
 
         }
 
-        private bool fixTableWidths(double noteWidth)
+        private bool FixTableWidths(double noteWidth)
         {
-            printTable(0);
+            PrintTable(0);
 
-            //confirm that the table is valid (some html tables get really wonky and difficult to render, Ex: row of completely vertically merged cells)
+            // confirm that the table is valid (some html tables get really wonky and difficult to render, Ex: row of completely vertically merged cells)
             double numColumns = table[0].Count;
 
             for(int i = 0; i < table.Count; i++)
             {
-                if(table[i].Count != numColumns) //if we have a jagged table
+                if(table[i].Count != numColumns) // if we have a jagged table
                 {
                     //ABORT
                     MainRevitProgram.ShowDialog("Error", "The table is constructed invalidly. This may be due to a whole row consisting only of merged cells.");
@@ -821,13 +880,13 @@ namespace CTEK_Rich_Text_Editor
 
             double[] colWidth = new double[table[0].Count];
             DebugHandler.println("RTP", "viewscale: " + viewScale);
-            double defaultWidth = viewScale/100.0; //rough approximation for a default width
+            double defaultWidth = viewScale / 100.0;  // rough approximation for a default width
             for(int i = 0; i < colWidth.Length; i++)
             {
                 colWidth[i] = defaultWidth;
             }
 
-            List<Cell> cellsByColSpan = new List<Cell>(); //create a new list of cells that is a copy of the original
+            List<Cell> cellsByColSpan = new List<Cell>();  // create a new list of cells that is a copy of the original
             for (int i = 0; i < tableCells.Count; i++)
             {
                 cellsByColSpan.Add(tableCells[i]);
@@ -907,7 +966,7 @@ namespace CTEK_Rich_Text_Editor
 
         }
 
-        private const double KERNING_SUBTRACT_MULTIPLIER = 0.15;     // Total hack; this should in theory be 1
+        private const double KERNING_SUBTRACT_MULTIPLIER = 0.15;     // Total kludge; this should in theory be 1
 
         /// <summary>
         /// Figures out how much space to subtract from the end of the last placed text in order to have roughly correct kerning
@@ -977,15 +1036,14 @@ namespace CTEK_Rich_Text_Editor
         private string GetBullet(BulletStyle bulletStyle, int bulletCount)
         {
             string SYMBOL_PREFIX = " ";
-            string HACK = "";      // TODO MAKE THIS HACK BETTER (I don't think this is used anymore with new subscript, superscript handling)
             switch (bulletStyle)
             {
                 case BulletStyle.NUMBER:
                     return bulletCount + ".";
                 
-                case BulletStyle.CIRCLED_NUMBER:
+                case BulletStyle.NUMBER_CUSTOM:
 					// Just spit out the number
-					// Actually circling it is handled by the custom bullet type
+					// Actually customizing the look is handled by the custom bullet type
                     return bulletCount + "";
 
                 case BulletStyle.LOWER_ALPHA:
@@ -1052,7 +1110,7 @@ namespace CTEK_Rich_Text_Editor
                         if (att.Value.Equals("list-style-type: lower-alpha;"))
                             bulletReturn = BulletStyle.LOWER_ALPHA;
                         else if (att.Value.Equals("list-style-type: lower-greek;"))
-                            bulletReturn = BulletStyle.CIRCLED_NUMBER;
+                            bulletReturn = BulletStyle.NUMBER_CUSTOM;
                         else if (att.Value.Equals("list-style-type: lower-roman;"))
                             bulletReturn = BulletStyle.LOWER_ROMAN;
                         else if (att.Value.Equals("list-style-type: lower-roman;"))
@@ -1065,7 +1123,7 @@ namespace CTEK_Rich_Text_Editor
                     if(att.Name.Equals("class"))
                     {
                         if (att.Value.Equals("customBulletCircle"))
-                            bulletReturn = BulletStyle.CIRCLED_NUMBER;
+                            bulletReturn = BulletStyle.NUMBER_CUSTOM;
                     }
                 }
                 return bulletReturn;
@@ -1074,22 +1132,22 @@ namespace CTEK_Rich_Text_Editor
                 throw new Exception(node.Name + " IS NOT A LIST STYLE");
         }
 
-        private void printTable(int value) //prints out the table for debugging (value: corresponds with 0: width or 1: height)
+        private void PrintTable(int value) //prints out the table for debugging (value: corresponds with 0: width or 1: height)
         {
             string print = "";
-            print += System.Environment.NewLine;
-            for(int i = 0; i < table.Count; i++)
+            print += Environment.NewLine;
+            for (int i = 0; i < table.Count; i++)
             {
-                for(int j = 0; j < table[i].Count; j++)
+                for (int j = 0; j < table[i].Count; j++)
                 {
-                    if(value == 0)
+                    if (value == 0)
                     {
                         if(table[i][j] != null)
-                            print += ((int)table[i][j].width).ToString(" 00;-00") + " ";
+                            print += ((int) table[i][j].width).ToString(" 00;-00") + " ";
                         else
                             print += " Na ";   
                     }
-                    else if(value == 1)
+                    else if (value == 1)
                     {
                         if (table[i][j] != null)
                             print += ((int)table[i][j].yEnd).ToString(" 00;-00") + " ";
@@ -1099,7 +1157,7 @@ namespace CTEK_Rich_Text_Editor
                     }
                     
                 }
-                print += System.Environment.NewLine;
+                print += Environment.NewLine;
             }
             
             DebugHandler.println("RTP", print);
@@ -1138,8 +1196,6 @@ namespace CTEK_Rich_Text_Editor
 
             largestType = null;
         }
-
-
     }
 
     class Cell
@@ -1176,7 +1232,7 @@ namespace CTEK_Rich_Text_Editor
             this.yEnd = 0;
         }
 
-        public void setValues(double colStart, double colEnd, double yStart)
+        public void SetValues(double colStart, double colEnd, double yStart)
         {
             this.colStart = colStart;
             this.colEnd = colEnd;
@@ -1188,7 +1244,7 @@ namespace CTEK_Rich_Text_Editor
             this.yEnd = yEnd;
         }
 
-        public string toString()
+        public override string ToString()
         {
             return " Column Start: " + colNumStart + " Column End: " + colNumEnd + " Row Start: " + rowNumStart + " Row End: " + rowNumEnd
                     + " relx: " + colStart + " relxEnd: " + colEnd + " rely: " + yStart + " relyEnd: " + yEnd;

@@ -38,7 +38,6 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
             this.activateButton = new System.Windows.Forms.Button();
             this.activateText = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
@@ -48,6 +47,7 @@
             this.label15 = new System.Windows.Forms.Label();
             this.passwordBox = new System.Windows.Forms.TextBox();
             this.guid = new System.Windows.Forms.Label();
+            this.linkLabel2 = new System.Windows.Forms.LinkLabel();
             this.SuspendLayout();
             // 
             // label1
@@ -143,15 +143,6 @@
             this.label11.TabIndex = 11;
             this.label11.Text = "This package includes software released under the GNU LGPL.";
             // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(13, 26);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(273, 13);
-            this.label12.TabIndex = 12;
-            this.label12.Text = "To request a copy of the source code, send us an email.";
-            // 
             // activateButton
             // 
             this.activateButton.Location = new System.Drawing.Point(16, 233);
@@ -199,7 +190,7 @@
             // linkLabel1
             // 
             this.linkLabel1.AutoSize = true;
-            this.linkLabel1.Location = new System.Drawing.Point(134, 284);
+            this.linkLabel1.Location = new System.Drawing.Point(137, 284);
             this.linkLabel1.Name = "linkLabel1";
             this.linkLabel1.Size = new System.Drawing.Size(165, 13);
             this.linkLabel1.TabIndex = 20;
@@ -233,11 +224,22 @@
             this.guid.TabIndex = 21;
             this.guid.Text = "GUID: None";
             // 
+            // linkLabel2
+            // 
+            this.linkLabel2.AutoSize = true;
+            this.linkLabel2.Location = new System.Drawing.Point(13, 26);
+            this.linkLabel2.Name = "linkLabel2";
+            this.linkLabel2.Size = new System.Drawing.Size(285, 13);
+            this.linkLabel2.TabIndex = 22;
+            this.linkLabel2.TabStop = true;
+            this.linkLabel2.Text = "https://github.com/centek-software/Revit-Rich-Text-Editor";
+            // 
             // AboutForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(584, 362);
+            this.Controls.Add(this.linkLabel2);
             this.Controls.Add(this.guid);
             this.Controls.Add(this.passwordBox);
             this.Controls.Add(this.label15);
@@ -247,7 +249,6 @@
             this.Controls.Add(this.label14);
             this.Controls.Add(this.activateText);
             this.Controls.Add(this.activateButton);
-            this.Controls.Add(this.label12);
             this.Controls.Add(this.label11);
             this.Controls.Add(this.label10);
             this.Controls.Add(this.label9);
@@ -282,7 +283,6 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Button activateButton;
         private System.Windows.Forms.Label activateText;
         private System.Windows.Forms.Label label14;
@@ -292,6 +292,6 @@
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.TextBox passwordBox;
         private System.Windows.Forms.Label guid;
-
+        private System.Windows.Forms.LinkLabel linkLabel2;
     }
 }
