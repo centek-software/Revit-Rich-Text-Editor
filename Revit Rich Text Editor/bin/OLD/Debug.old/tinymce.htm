@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>tinyMCE WYSIWYG Editor</title>
+  </head>
+  
+  <script type="text/javascript" src="tinymce/js/tinymce/tinymce.js"></script>
+
+  <!-- Script functions to expose tinyMCE internals that get called from code using InvokeScript method. -->
+  <script type="text/javascript">
+    function GetContent() {
+    return tinyMCE.get('tinyMceEditor').getContent();
+    }
+
+    function SetContent(htmlContent) {
+    tinyMCE.get('tinyMceEditor').setContent(htmlContent);
+    }
+
+    
+  </script>
+
+  <!-- TinyMCE -->
+  <script type="text/javascript">
+    tinyMCE.init({
+    selector: "textarea",
+    setup: function(editor){
+    editor.on("init",
+    function(ed) {
+    if ('setDefaultContent' in window.external)
+    window.external.setDefaultContent();
+    else
+    SetContent("Could not load default content because no connection to C-Sharp");
+
+    editor.execCommand('mceFullScreen');
+    }
+    );
+    },
+    plugins: [
+    "advlist lists charmap pagebreak",
+    "searchreplace code fullscreen",
+    "insertdatetime table paste spellchecker anchor"
+    ],
+    toolbar: "undo redo | formatselect | bold italic underline | subscript superscript | bullist numlist | outdent indent | pagebreak | image | pastetext removeformat | code charmap | searchreplace spellchecker anchor",
+    paste_data_images: true,
+    removed_menuitems: "newdocument",
+    block_formats: "Paragraph=p;Heading 1=h1;Heading 2=h2;Heading 3=h3;Heading 4=h4;Heading 5=h5;Heading 6=h6",
+    menubar: "",
+    spellchecker_languages: ('spellcheckLanguages' in window.external ? window.external.spellcheckLanguages() : "Not Supported,Sorry"),
+    spellchecker_language: window.external.defaultSpellcheckLanguage(),
+    valid_children : "-li[p],-strong[br],-b[br],-em[br],-i[br],-strike[br],-sup[br],-sub[br]",
+    valid_elements: "span/u[!style: text-decoration: underline;|style],p[style],strong/b[style],em/i[style],strike[style],sup[style],sub[style],br,ul[start|style],ol[start|style],li[style],h1[style],h2[style],h3[style],h4[style],h5[style],img[*],a[id]"
+    });
+  </script>
+  <!-- /TinyMCE -->
+
+  <body>
+    <form method="post">
+      <!-- alignleft aligncenter alignright table -->
+      <!-- Gets replaced with TinyMCE, remember HTML in a textarea should be encoded -->
+      <textarea name="tinyMceEditor" id="tinyMceEditor" cols="1" rows="1" style="width:100%; height: 100%">Something went wrong while loading the default content</textarea>
+    </form>
+  </body>
+</html>

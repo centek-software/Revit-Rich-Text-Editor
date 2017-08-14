@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Revit Rich Text Editor", "Revit Rich Text Editor\Revit Rich Text Editor.csproj", "{EB167FDA-AC3A-4B7B-AACA-834B5CD8FC89}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VCExtensibleStorageExtension", "VCExtensibleStorageExtension\VCExtensibleStorageExtension.csproj", "{671E6F08-995D-4C13-A7A2-CEB3867CF81D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EB167FDA-AC3A-4B7B-AACA-834B5CD8FC89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB167FDA-AC3A-4B7B-AACA-834B5CD8FC89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB167FDA-AC3A-4B7B-AACA-834B5CD8FC89}.Debug|x64.ActiveCfg = Debug|x64
+		{EB167FDA-AC3A-4B7B-AACA-834B5CD8FC89}.Debug|x64.Build.0 = Debug|x64
+		{EB167FDA-AC3A-4B7B-AACA-834B5CD8FC89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB167FDA-AC3A-4B7B-AACA-834B5CD8FC89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB167FDA-AC3A-4B7B-AACA-834B5CD8FC89}.Release|x64.ActiveCfg = Release|x64
+		{EB167FDA-AC3A-4B7B-AACA-834B5CD8FC89}.Release|x64.Build.0 = Release|x64
+		{671E6F08-995D-4C13-A7A2-CEB3867CF81D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{671E6F08-995D-4C13-A7A2-CEB3867CF81D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{671E6F08-995D-4C13-A7A2-CEB3867CF81D}.Debug|x64.ActiveCfg = Debug|x64
+		{671E6F08-995D-4C13-A7A2-CEB3867CF81D}.Debug|x64.Build.0 = Debug|x64
+		{671E6F08-995D-4C13-A7A2-CEB3867CF81D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{671E6F08-995D-4C13-A7A2-CEB3867CF81D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{671E6F08-995D-4C13-A7A2-CEB3867CF81D}.Release|x64.ActiveCfg = Release|x64
+		{671E6F08-995D-4C13-A7A2-CEB3867CF81D}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>tinyMCE WYSIWYG Editor</title>
+  </head>
+
+  <script type="text/javascript" src="tinymce/js/tinymce/tinymce.js"></script>
+
+  <script type="text/javascript">
+    // So C# can get tinyMCE content
+    function GetContent()
+    {
+        return tinyMCE.get('tinyMceEditor').getContent();
+    }
+
+    // So C# can set tinyMCE content
+    function SetContent(htmlContent)
+    {
+        tinyMCE.get('tinyMceEditor').setContent(htmlContent);
+        // Have undo here
+        tinyMCE.get('tinyMceEditor').undoManager.add();
+    }
+
+    function SetDefaultContent(htmlContent)
+    {
+        tinyMCE.get('tinyMceEditor').setContent(htmlContent);
+    }
+
+    // Kludge because for some reason chrome wants a delay here
+    function MakeFullscreen()
+    {
+        tinyMCE.get('tinyMceEditor').execCommand('mceFullScreen');
+    }
+
+    var changeId = 0;
+    var lastContent = "3f368fbd-caca-42be-8fd6-e65ba259e405";
+
+    function handleChanges()
+    {
+        var content = GetContent();
+        if (content !== lastContent)
+        {
+            bound.tinyOnChange(++changeId, content);
+            lastContent = content;
+        }
+
+        setTimeout(handleChanges, 10);
+    }
+
+    tinyMCE.init(
+    {
+
+        selector: "textarea",
+        setup: function(editor)
+        {
+            editor.on("init", function(ed)
+            {
+                SetContent(bound.getDefaultContent());
+
+                setTimeout(MakeFullscreen, 1);
+                setTimeout(handleChanges, 10);
+
+
+                editor.buttons.table.menu.splice(1,1);
+                editor.buttons.table.menu[3].menu.splice(0,1);
+
+
+            });
+
+            editor.on("change keyup", function(ed)
+            {
+                //console.log(l);
+                //bound.tinyOnChange(++changeId, ed.content);
+            });
+        },
+        content_style: "td {vertical-align: text-top;} ul, ol {margin: 0px; padding-left: 18px; text-indent: 0px;} p {margin: 0px;} .customBulletCircle {counter-reset: list; padding-left: 15px; text-indent: -20px;} .customBulletCircle > li{list-style: none;} .customBulletCircle > li:before {counter-increment: list; content: '(' counter(list) ') '; counter-increment: list;} table{text-indent: 0px;}",
+        plugins: [
+            "advlist lists charmap pagebreak",
+            "searchreplace code fullscreen",
+            "insertdatetime table paste spellchecker anchor"
+        ],
+        advlist_number_styles: "default,lower-alpha,lower-roman,upper-alpha,upper-roman",
+        style_formats: [
+            {title : 'Toggle Custom Bullets', selector : 'ol', classes : 'customBulletCircle'}
+        ],
+        table_toolbar: "tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol",
+        table_advtab: false,
+        table_cell_advtab: false,
+        table_row_advtab: false,
+        toolbar: "undo redo | styleselect formatselect | bold italic underline | subscript superscript | bullist numlist | outdent indent | pagebreak | image | pastetext removeformat | code charmap | searchreplace spellchecker | table",
+        paste_data_images: true,
+        removed_menuitems: "newdocument",
+        block_formats: "Paragraph=p;Heading 1=h1;Heading 2=h2;Heading 3=h3;Heading 4=h4;Heading 5=h5",
+        menubar: "",
+        spellchecker_languages: bound.spellcheckLanguages(),
+        spellchecker_language: bound.defaultSpellcheckLanguage(),
+        valid_children : "-li[p],-strong[br],-b[br],-em[br],-i[br],-strike[br],-sup[br|sup],-sub[br|sub]",
+        valid_elements: "span[style],p[style],strong/b[style],em/i[style],strike[style],sup[style],sub[style],br,ul[start|style|class],ol[start|style|class],li[style],h1[style],h2[style],h3[style],h4[style],h5[style],img[*],table[style],tr[style],td[*]"
+    });
+  </script>
+  <!-- /TinyMCE -->
+
+  <body>
+    <form method="post">
+      <!-- alignleft aligncenter alignright table -->
+      <!-- Gets replaced with TinyMCE, remember HTML in a textarea should be encoded -->
+      <style>
+        #mceu_38 {display:none !important;}
+      </style>
+      <textarea name="tinyMceEditor" id="tinyMceEditor" cols="1" rows="1" style="width:100%; height: 100%">Something went wrong while loading the default content</textarea>
+    </form>
+  </body>
+</html>
