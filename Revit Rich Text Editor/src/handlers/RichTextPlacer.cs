@@ -739,7 +739,7 @@ namespace CTEK_Rich_Text_Editor
                             h = img.Height;
                         }
 
-                        ch.requestDrawImage(html, colStartX + relStartX, colStartY - relStartY, w, h);
+                        ch.RequestDrawImage(html, colStartX + relStartX, colStartY - relStartY, w, h);
 
 
                         relStartY += ImageHandler.pixelsToFeet(h, viewScale);
@@ -1109,7 +1109,7 @@ namespace CTEK_Rich_Text_Editor
         {
             double width = 0;
             if (!textString.Trim().Equals(""))
-                width = ch.requestDrawText(textString, X, Y, textType, textScript);
+                width = ch.RequestDrawText(textString, X, Y, textType, textScript);
 
             lastPlacedText = textString;
 

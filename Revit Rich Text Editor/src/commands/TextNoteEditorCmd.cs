@@ -55,8 +55,6 @@ namespace CTEK_Rich_Text_Editor
 
         public void TestForm(UIApplication uiApp, string html, Element note, ActivationHandler activationHandler)
         {
-
-
             //Access a new instance of the Form1 created earlier and call it 'form'
             //using (var form = new MainFormIE(uiApp, html, note, activationHandler))
             //using (var form = new MainFormCEF(uiApp, html, note, activationHandler))

@@ -1,0 +1,1 @@
+﻿The spellchecker plugin has been modified (look for `bound` variable). Updating tinymce implies making the same change again.

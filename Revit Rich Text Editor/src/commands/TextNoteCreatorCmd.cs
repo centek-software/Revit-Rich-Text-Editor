@@ -94,20 +94,8 @@ namespace CTEK_Rich_Text_Editor
                 example = "<!-- BulletFamily: " + "DefaultBulletId" + "-->" + example;
                 ColumnHandler ch = new ColumnHandler(uidoc, fundamentalProperties, view, new XYZ(Xlft, Ytop, pb.Min.Z), example);
                 RichTextPlacer rtp = new RichTextPlacer(example, uidoc, fundamentalProperties, view.Scale, ch, null);
-
-                //rtp.doParse(Xlft, Ytop, view);
-
-                rtp.DoParse();
                 
-                //using (Transaction tr = new Transaction(uidoc.Document, "Creating individual text nodes"))
-                //{
-                //    tr.Start();
-
-                    
-                //    //ch.actuallyDrawElements();
-
-                //    tr.Commit();
-                //}
+                rtp.DoParse();
 
                 using (Transaction tr = new Transaction(uidoc.Document, "Grouping text nodes together"))
                 {

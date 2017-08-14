@@ -132,7 +132,7 @@ namespace CTEK_Rich_Text_Editor
         /// <param name="relY"></param>
         /// <param name="widthPixels">Width of the image (in pixels)</param>
         /// <param name="heightPixels">Height of the image (in pixels)</param>
-        public void requestDrawImage(string htmlData, double relX, double relY, int widthPixels, int heightPixels)
+        public void RequestDrawImage(string htmlData, double relX, double relY, int widthPixels, int heightPixels)
         {
             int scale = masterView.Scale;
             //newMasterNoteIIs.Add(new IIImage(new XYZ(relX, relY, 0), ImageHandler.pixelsToFeet(width, scale), ImageHandler.pixelsToFeet(height, scale), htmlData, width, height));
@@ -147,7 +147,7 @@ namespace CTEK_Rich_Text_Editor
         /// <param name="relX"></param>
         /// <param name="relY"></param>
         /// <param name="textType">The text font</param>
-        public double requestDrawText(string textString, double relX, double relY, TextNoteType textType, TextTools.TextScriptType textScript)
+        public double RequestDrawText(string textString, double relX, double relY, TextNoteType textType, TextTools.TextScriptType textScript)
         {
             //DebugHandler.println("CH", "Text:[" + textString + "] RelY: [" + relY + "]");
             //double width = TextTools.stringWidth(uidoc, textString, textType, true, masterView.Scale);
