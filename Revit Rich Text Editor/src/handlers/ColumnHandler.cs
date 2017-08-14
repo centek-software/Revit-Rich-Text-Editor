@@ -191,7 +191,7 @@ namespace CTEK_Rich_Text_Editor
             double endY;
 
             //DebugHandler.println("CH", "relY [" + relY + "], colHeight [" + tnt.colHeight + "], tableAdjustY[" + tableAdjustY + "]");
-            if(relY + tableAdjustY >= tnt.colHeight)
+            if (relY + tableAdjustY >= tnt.colHeight)
             {
                 tableAdjustX += tnt.colWidth + tnt.colSep;
                 tableAdjustY = -relY;
@@ -220,15 +220,22 @@ namespace CTEK_Rich_Text_Editor
         /// <summary>
         /// Requests that we make a new column for elements below this position
         /// </summary>
-        public void RequestNewColumn(double relY)
+        private void RequestNewColumn(double relY)
         {
-            var lastColumn = columnStartPositions.Last();
+            var lastColumn = columnStartPositions.First();
             columnStartPositions.Insert(0, new ColumnMarker()
             {
-                Column = lastColumn.Column + (int) ((relY - lastColumn.PositionY) / tnt.colHeight),
+                Column = lastColumn.Column + 1,
                 PositionY = relY
             });
         }
+
+        public void RequestNewColumn()
+        {
+            needColumn++;
+        }
+
+        private int needColumn = 0;
 
         //private void CheckNeedsColumn(double upperLeftY, double height)
         //{
@@ -240,8 +247,8 @@ namespace CTEK_Rich_Text_Editor
         //        colBreak = false;
         //    }
         //}
-        
-        
+
+
 
         /// <summary>
         /// Gets the actual position where we have to draw the element after taking wrapping into consideration.
@@ -252,17 +259,35 @@ namespace CTEK_Rich_Text_Editor
         /// <returns>(adjustX, adjustY, 0)</returns>
         private XYZ GetActualPosition(double requestedY, double height)
         {
-            foreach (var marker in columnStartPositions)
+            //foreach (var marker in columnStartPositions)
+            for (int i = 0; i < columnStartPositions.Count; ++i)
             {
+                var marker = columnStartPositions[i];
+
                 DebugHandler.println("CH", String.Format("Marker {0} requested {1}", marker.PositionY, requestedY));
-                if (requestedY - height <= marker.PositionY)
+                if (requestedY - height <= marker.PositionY || marker == columnStartPositions.Last())
                 {
                     int baseColumn = marker.Column;
                     double baseY = marker.PositionY;
                     double actualY = requestedY - baseY;
-                    int actualColumn = baseColumn + (int) (-actualY / tnt.colHeight);
+                    int actualColumn = baseColumn + (int) ((-actualY + height) / tnt.colHeight);
                     double columnX = actualColumn * (tnt.colWidth + tnt.colSep);
-                    double adjustY = -baseY + actualColumn * tnt.colHeight;
+                    double adjustY = -baseY + (actualColumn - baseColumn) * tnt.colHeight;
+
+                    if (actualColumn > baseColumn)
+                    {
+                        needColumn++;
+                    }
+
+                    // If we need a new column
+                    if (needColumn > 0)
+                    {
+                        RequestNewColumn(requestedY);
+                        i--;
+                        needColumn--;
+                        continue;
+                    }
+
                     return new XYZ(columnX, adjustY, 0);
                 }
             }
@@ -293,10 +318,10 @@ namespace CTEK_Rich_Text_Editor
         /// </summary>
         private void ActuallyDrawAnnotationSymbol(string id, double relX, double relY, string bulletText)
         {
-            if(id.Equals("DefaultBulletId"))
+            if (id.Equals("DefaultBulletId"))
             {
                 string tempId = TextTools.readDefaults(uidoc.Document);  // see if default bullet id is set
-                if(!tempId.Equals(""))
+                if (!tempId.Equals(""))
                 {
                     id = tempId;
                 }
@@ -332,7 +357,7 @@ namespace CTEK_Rich_Text_Editor
 
                 tr.Commit();
             }
-          
+
         }
 
         /// <summary>
@@ -353,7 +378,7 @@ namespace CTEK_Rich_Text_Editor
 
             // Add 'potato' here to make the text measurement here a tad longer
             double oversizeWidth = TextTools.stringWidthApprox(uidoc, textString + "potato", textType, true, masterView.Scale);
-            
+
             TextNote textNote = null;
             using (Transaction tr = new Transaction(uidoc.Document, "Making the next node"))
             {
@@ -373,14 +398,14 @@ namespace CTEK_Rich_Text_Editor
                     case 2017:
                     default:
                         // Temporary Reflection hack:
-                        textNote = (TextNote) RevitVersionHandler.CreateTextNote2016.Invoke(null, new object[] { uidoc.Document, masterView.Id, pLoc, textString, textType.Id });
+                        textNote = (TextNote)RevitVersionHandler.CreateTextNote2016.Invoke(null, new object[] { uidoc.Document, masterView.Id, pLoc, textString, textType.Id });
                         // What it should actually be:
                         //textNote = TextNote.Create(uidoc.Document, masterView.Id, pLoc, textString, textType.Id);
                         break;
                 }
 
                 tr.Commit();
-                
+
             }
 
             // If we don't have a sample element yet, make this the sample element!
@@ -436,7 +461,7 @@ namespace CTEK_Rich_Text_Editor
         {
             XYZ point1 = uiApp.Application.Create.NewXYZ(x1, y1, 0);
             XYZ point2 = uiApp.Application.Create.NewXYZ(x2, y2, 0);
-            
+
             Document doc = uiApp.ActiveUIDocument.Document;
             //Create line
             Line line = Line.CreateBound(point1, point2);
@@ -562,7 +587,7 @@ namespace CTEK_Rich_Text_Editor
 
         }
 
-        
+
     }
 
     class ColumnMarker

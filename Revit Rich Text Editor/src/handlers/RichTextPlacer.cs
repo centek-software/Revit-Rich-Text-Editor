@@ -799,7 +799,7 @@ namespace CTEK_Rich_Text_Editor
                         DebugHandler.println("RTP", bulletId);
                     }
                     else if (node.Value.Trim().Equals("pagebreak"))
-                        ch.RequestNewColumn(colStartY - relStartY);
+                        ch.RequestNewColumn();
 
                     break;
 
