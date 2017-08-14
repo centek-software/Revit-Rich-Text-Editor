@@ -39,7 +39,7 @@ namespace CTEK_Rich_Text_Editor
                 //===
 
                 UpdateHandler uh = new UpdateHandler(e as Group, uiApp);
-                uh.UpdateSize();
+                uh.UpdateManyThings();
                 uh.Regenerate();
 
                 //===

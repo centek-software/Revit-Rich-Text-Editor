@@ -23,8 +23,7 @@ namespace CTEK_Rich_Text_Editor
 
         private UIApplication uiapp;
         public string defaultContent;
-
-        private System.Windows.Forms.Timer aTimer;
+        
         private System.Object lockThis = new System.Object();
 
         private UpdateHandler uh;

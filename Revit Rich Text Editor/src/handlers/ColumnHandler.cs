@@ -46,6 +46,8 @@ namespace CTEK_Rich_Text_Editor
 
         public const float TEXT_SPACING = 1.5f;
 
+        private List<ColumnMarker> columnStartPositions = new List<ColumnMarker>();
+
         /// <summary>
         /// Creates a new ColumnHandler where there is no existing master note
         /// </summary>
@@ -63,6 +65,8 @@ namespace CTEK_Rich_Text_Editor
             this.masterNote = null;
             this.masterView = masterView;
             this.initialPos = initialPos;
+
+            this.columnStartPositions.Add(new ColumnMarker());
         }
 
         /// <summary>
@@ -122,6 +126,7 @@ namespace CTEK_Rich_Text_Editor
                 this.initialPos = masterView.Origin;
             }
 
+            this.columnStartPositions.Add(new ColumnMarker());
         }
 
         /// <summary>
@@ -135,7 +140,13 @@ namespace CTEK_Rich_Text_Editor
         public void RequestDrawImage(string htmlData, double relX, double relY, int widthPixels, int heightPixels)
         {
             int scale = masterView.Scale;
-            CheckNeedsColumn(relY, ImageHandler.pixelsToFeet(heightPixels, scale));
+            //CheckNeedsColumn(relY, ImageHandler.pixelsToFeet(heightPixels, scale));
+            var height = ImageHandler.pixelsToFeet(heightPixels, scale);
+
+            var adjust = GetActualPosition(relY, height);
+            var adjustX = adjust.X;
+            var adjustY = adjust.Y;
+
             ActuallyDrawImage(htmlData, relX + adjustX, relY + adjustY, widthPixels, heightPixels);
         }
 
@@ -148,29 +159,24 @@ namespace CTEK_Rich_Text_Editor
         /// <param name="textType">The text font</param>
         public double RequestDrawText(string textString, double relX, double relY, TextNoteType textType, TextTools.TextScriptType textScript)
         {
-            //DebugHandler.println("CH", "Text:[" + textString + "] RelY: [" + relY + "]");
             double height = TextTools.textHeight(textType) * masterView.Scale * TEXT_SPACING;
 
-            CheckNeedsColumn(relY, height);
+            // CheckNeedsColumn(relY, height);
+            var adjust = GetActualPosition(relY, height);
+            var adjustX = adjust.X;
+            var adjustY = adjust.Y;
 
             return ActuallyDrawText(textString, relX + adjustX, relY + adjustY, textType, textScript);
         }
 
         public void requestDrawAnnotation(string id, double relX, double relY, string bulletChar, double height, double relYforCol)
         {
-            //DebugHandler.println("CH", "AnnotationChar:[" + bulletChar + "] RelY: [" + relY + "]");
-            CheckNeedsColumn(relYforCol, height);
+            // CheckNeedsColumn(relYforCol, height);
+            var adjust = GetActualPosition(relYforCol, height);
+            var adjustX = adjust.X;
+            var adjustY = adjust.Y;
 
             ActuallyDrawAnnotationSymbol(id, relX + adjustX, relY + adjustY, bulletChar);
-            //newMasterNoteIIs.Add(new IIAnnotationSymbol(new XYZ(X, Y, 0), 10, id, bulletChar));
-        }
-
-        /// <summary>
-        /// Requests that we make a new column for all future elements
-        /// </summary>
-        public void RequestNewColumn(double relY)
-        {
-            // colBreak = true;
         }
 
         //because table lines are drawn at the very end of the table rendering we have to do our own independent wrapping
@@ -211,6 +217,19 @@ namespace CTEK_Rich_Text_Editor
             }
         }
 
+        /// <summary>
+        /// Requests that we make a new column for elements below this position
+        /// </summary>
+        public void RequestNewColumn(double relY)
+        {
+            var lastColumn = columnStartPositions.Last();
+            columnStartPositions.Insert(0, new ColumnMarker()
+            {
+                Column = lastColumn.Column + (int) ((relY - lastColumn.PositionY) / tnt.colHeight),
+                PositionY = relY
+            });
+        }
+
         //private void CheckNeedsColumn(double upperLeftY, double height)
         //{
         //    if (-upperLeftY - adjustY > tnt.colHeight - height || colBreak)       // Time to wrap!
@@ -222,8 +241,7 @@ namespace CTEK_Rich_Text_Editor
         //    }
         //}
         
-        // Represents the position within the imaginary unwrapped note where the column begins
-        private List<double> columnStartPositions = new List<double>();
+        
 
         /// <summary>
         /// Gets the actual position where we have to draw the element after taking wrapping into consideration.
@@ -231,22 +249,27 @@ namespace CTEK_Rich_Text_Editor
         /// </summary>
         /// <param name="requestedY">The starting height of the item</param>
         /// <param name="height">Used to wrap if necessary</param>
-        /// <returns></returns>
+        /// <returns>(adjustX, adjustY, 0)</returns>
         private XYZ GetActualPosition(double requestedY, double height)
         {
-            int actualCol = startCol + (int) (requestedY / (tnt.colHeight - height));
-            double adjustX = (tnt.colWidth + tnt.colSep) * actualCol;
-            
+            foreach (var marker in columnStartPositions)
+            {
+                DebugHandler.println("CH", String.Format("Marker {0} requested {1}", marker.PositionY, requestedY));
+                if (requestedY - height <= marker.PositionY)
+                {
+                    int baseColumn = marker.Column;
+                    double baseY = marker.PositionY;
+                    double actualY = requestedY - baseY;
+                    int actualColumn = baseColumn + (int) (-actualY / tnt.colHeight);
+                    double columnX = actualColumn * (tnt.colWidth + tnt.colSep);
+                    double adjustY = -baseY + actualColumn * tnt.colHeight;
+                    return new XYZ(columnX, adjustY, 0);
+                }
+            }
+
+            // Impossible, in principal
+            return null;
         }
-
-
-        // == STUFF FROM actuallyDrawElements == //
-        //int col = 0;
-        //// How much to additionally adjust the note position
-        //double adjustX = 0;     // This is going to offset so we are in the correct X position for the column
-        //double adjustY = 0;     // This pulls the text up because otherwise it would still be drawn at the Y position directly under the last column
-        //bool colBreak = false;
-        
 
         /// <summary>
         /// Actually draws the image in the view
@@ -263,7 +286,6 @@ namespace CTEK_Rich_Text_Editor
 
                 tr.Commit();
             }
-           
         }
 
         /// <summary>
@@ -273,12 +295,12 @@ namespace CTEK_Rich_Text_Editor
         {
             if(id.Equals("DefaultBulletId"))
             {
-                string tempId = TextTools.readDefaults(uidoc.Document); //see if default bullet id is set
+                string tempId = TextTools.readDefaults(uidoc.Document);  // see if default bullet id is set
                 if(!tempId.Equals(""))
                 {
                     id = tempId;
                 }
-                else //if no default bullet id was found
+                else  // if no default bullet id was found
                 {
                     return;
                 }
@@ -303,7 +325,7 @@ namespace CTEK_Rich_Text_Editor
                     {
                         p.Set(bulletText);
                         p.Set(int.Parse(bulletText));
-                        //have to set it twice to get all integer and string parameters
+                        // have to set it twice to get all integer and string parameters
                     }
                 }
                 newMasterNoteElements.Add(e.Id);
@@ -541,5 +563,17 @@ namespace CTEK_Rich_Text_Editor
         }
 
         
+    }
+
+    class ColumnMarker
+    {
+        public ColumnMarker()
+        {
+            this.Column = 0;
+            this.PositionY = 0;
+        }
+
+        public int Column { get; set; }
+        public double PositionY { get; set; }
     }
 }
