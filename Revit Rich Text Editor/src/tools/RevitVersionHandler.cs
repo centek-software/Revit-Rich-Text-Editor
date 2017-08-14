@@ -22,12 +22,10 @@ namespace CTEK_Rich_Text_Editor
     {
         private static int revitVersion = -1;
 
-        public static MethodInfo createTextNote2016 {get; private set;}
+        public static MethodInfo CreateTextNote2016 { get; private set; }
 
-        public static bool needsUpdate(string build)
+        public static bool NeedsUpdate(string build)
         {
-            // https://knowledge.autodesk.com/support/revit-products/troubleshooting/caas/sfdcarticles/sfdcarticles/How-to-tie-the-Build-number-with-the-Revit-update.html
-            
             switch (build)
             {
                 case "20140223_1515(x64)":   // First Customer Ship
@@ -40,16 +38,23 @@ namespace CTEK_Rich_Text_Editor
             return false;
         }
 
-        private static int identifyRevitVersion()
+        private static int IdentifyRevitVersion()
         {
-            createTextNote2016 = typeof(TextNote).GetMethod("Create", new[] { typeof(Document), typeof(ElementId), typeof(XYZ), typeof(string), typeof(ElementId) });
+            // NOTE: Maybe use the build version instead of this witchcraft?
+            // DON'T USE THE BUILD NUMBER THOUGH, because the year is the year it was built, not the actual revit version
+            // https://knowledge.autodesk.com/support/revit-products/troubleshooting/caas/sfdcarticles/sfdcarticles/How-to-tie-the-Build-number-with-the-Revit-update.html
+
+            CreateTextNote2016 = typeof(TextNote).GetMethod("Create", new[] { typeof(Document), typeof(ElementId), typeof(XYZ), typeof(string), typeof(ElementId) });
+
+            // == Check 2018 ==
+            // Behaviour turned out to be identical to 2017, so no need
 
             // == Check 2017 ==
             if (typeof(TextNote).GetMethod("GetFormattedText") != null)
                 return 2017;
 
             // == Check 2016 ==
-            if (createTextNote2016 != null)
+            if (CreateTextNote2016 != null)
                 return 2016;
 
             // == Check 2015 ==
@@ -60,10 +65,10 @@ namespace CTEK_Rich_Text_Editor
             return 2014;
         }
 
-        public static int getRevitVersion()
+        public static int GetRevitVersion()
         {
             if (revitVersion < 0)
-                revitVersion = identifyRevitVersion();
+                revitVersion = IdentifyRevitVersion();
 
             return revitVersion;
         }

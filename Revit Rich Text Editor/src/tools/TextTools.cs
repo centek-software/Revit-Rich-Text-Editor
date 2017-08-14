@@ -319,7 +319,7 @@ namespace CTEK_Rich_Text_Editor
             float fontHeightInch = (float) textHeight * 12.0f;
 
             float pointSize;
-            if(RevitVersionHandler.getRevitVersion() >= 2017)
+            if(RevitVersionHandler.GetRevitVersion() >= 2017)
             {
                 // Witchcraft
                 pointSize = (float) ((int) ((textHeight * 12.0 * REVIT_FONT_DPI) + 1.1f) * 2.0) / 2.0f;

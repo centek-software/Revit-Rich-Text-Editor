@@ -286,8 +286,8 @@ namespace CTEK_Rich_Text_Editor
 
                 // Regenerate the note
                 UpdateHandler uh = new UpdateHandler(el as Group, uiapp);
-                uh.updateManyThings();
-                uh.regenerate();
+                uh.UpdateManyThings();
+                uh.Regenerate();
             }
             this.Close();
 

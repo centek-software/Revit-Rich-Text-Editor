@@ -73,8 +73,8 @@ namespace CTEK_Rich_Text_Editor
                     }
 
                     UpdateHandler uh = new UpdateHandler(e2 as Group, uiApp);
-                    uh.updateManyThings();
-                    uh.regenerate();
+                    uh.UpdateManyThings();
+                    uh.Regenerate();
                 }
 
                 transGroup.Assimilate();

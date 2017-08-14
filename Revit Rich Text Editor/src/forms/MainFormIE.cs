@@ -44,8 +44,8 @@ namespace CTEK_Rich_Text_Editor
             aTimer.Tick += new System.EventHandler(OnTimerEvent);
 
             uh = new UpdateHandler(note as Group, uiapp);
-            uh.updateManyThings();
-            uh.regenerate();
+            uh.UpdateManyThings();
+            uh.Regenerate();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -67,8 +67,8 @@ namespace CTEK_Rich_Text_Editor
         {
             lock (lockThis)
             {
-                uh.updateHTML(tinyMceEditor.HtmlContent);
-                uh.regenerate();
+                uh.UpdateHTML(tinyMceEditor.HtmlContent);
+                uh.Regenerate();
             }
         }
 

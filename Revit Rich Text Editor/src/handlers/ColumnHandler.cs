@@ -136,8 +136,8 @@ namespace CTEK_Rich_Text_Editor
         {
             int scale = masterView.Scale;
             //newMasterNoteIIs.Add(new IIImage(new XYZ(relX, relY, 0), ImageHandler.pixelsToFeet(width, scale), ImageHandler.pixelsToFeet(height, scale), htmlData, width, height));
-            checkNeedsColumn(relY, ImageHandler.pixelsToFeet(heightPixels, scale));
-            actuallyDrawImage(htmlData, relX + adjustX, relY + adjustY, widthPixels, heightPixels);
+            CheckNeedsColumn(relY, ImageHandler.pixelsToFeet(heightPixels, scale));
+            ActuallyDrawImage(htmlData, relX + adjustX, relY + adjustY, widthPixels, heightPixels);
         }
 
         /// <summary>
@@ -153,50 +153,26 @@ namespace CTEK_Rich_Text_Editor
             //double width = TextTools.stringWidth(uidoc, textString, textType, true, masterView.Scale);
             double height = TextTools.textHeight(textType) * masterView.Scale * TEXT_SPACING;
 
-            checkNeedsColumn(relY, height);
+            CheckNeedsColumn(relY, height);
 
-            return actuallyDrawText(textString, relX + adjustX, relY + adjustY, textType, textScript);
-            //newMasterNoteIIs.Add(new IITextNode(new XYZ(relX, relY, 0), height, textString, textType, textScript));
+            return ActuallyDrawText(textString, relX + adjustX, relY + adjustY, textType, textScript);
         }
 
         public void requestDrawAnnotation(string id, double relX, double relY, string bulletChar, double height, double relYforCol)
         {
             //DebugHandler.println("CH", "AnnotationChar:[" + bulletChar + "] RelY: [" + relY + "]");
-            checkNeedsColumn(relYforCol, height);
+            CheckNeedsColumn(relYforCol, height);
 
-            actuallyDrawAnnotationSymbol(id, relX + adjustX, relY + adjustY, bulletChar);
+            ActuallyDrawAnnotationSymbol(id, relX + adjustX, relY + adjustY, bulletChar);
             //newMasterNoteIIs.Add(new IIAnnotationSymbol(new XYZ(X, Y, 0), 10, id, bulletChar));
         }
 
         /// <summary>
         /// Requests that we make a new column for all future elements
         /// </summary>
-        public void requestNewColumn()
+        public void RequestNewColumn()
         {
-            //newMasterNoteIIs.Add(new IIColumnBreak());
-            //col++;
-            //adjustX += tnt.colWidth + tnt.colSep;
-            //adjustY = 0;
             colBreak = true;
-        }
-
-        //This method draws the large outline that extends around the whole table not just one cell (not used anymore because of table wrapping)
-        public void requestNewTableBox(double relX, double endRelX, double relY, double endRelY) //this needs to be called from a started transaction
-        {
-            double startX = initialPos.X + relX + adjustX;
-            double endX = initialPos.X + endRelX + adjustX;
-            double startY = initialPos.Y - relY + adjustY;
-            double endY = initialPos.Y - endRelY + adjustY;
-
-            if (Math.Abs(relY - endRelY) > 0)
-            {
-                UIApplication uiapp = uidoc.Application;
-                View view = uidoc.Document.ActiveView;
-                DetailCurve lineTop = MakeLine(uiapp, view, startX, startY, endX, startY); //top line
-                DetailCurve lineLeft = MakeLine(uiapp, view, startX, startY, startX, endY); //left line
-                newMasterNoteElements.Add(lineTop.Id);
-                newMasterNoteElements.Add(lineLeft.Id);
-            }
         }
 
         //because table lines are drawn at the very end of the table rendering we have to do our own independent wrapping
@@ -237,7 +213,7 @@ namespace CTEK_Rich_Text_Editor
             }
         }
 
-        private void checkNeedsColumn(double upperLeftY, double height)
+        private void CheckNeedsColumn(double upperLeftY, double height)
         {
             if (-upperLeftY - adjustY > tnt.colHeight - height || colBreak)       // Time to wrap!
             {
@@ -255,65 +231,12 @@ namespace CTEK_Rich_Text_Editor
         double adjustX = 0;     // This is going to offset so we are in the correct X position for the column
         double adjustY = 0;     // This pulls the text up because otherwise it would still be drawn at the Y position directly under the last column
         bool colBreak = false;
-
-
-        /// <summary>
-        /// Actually draws the elements that we have requested to draw
-        /// </summary>
-        /// 
-        //public void actuallyDrawElements()
-        //{
-            // TODO: NO LONGER USING THIS MOVING TO CLASSWIDE
-
-            //int col = 0;
-
-            //bool colBreak = false;
-
-            //// How much to additionally adjust the note position
-            //double adjustX = 0;     // This is going to offset so we are in the correct X position for the column
-            //double adjustY = 0;     // This pulls the text up because otherwise it would still be drawn at the Y position directly under the last column
-
-            //foreach (IIInsertableItem it in newMasterNoteIIs)
-            //{
-            //    // Handle column wrapping
-
-            //    if (it is IIColumnBreak)    // If this is a column break, then the next element we draw should wrap whether it needs to or not
-            //    {
-            //        colBreak = true;
-            //        continue;
-            //    }
-
-            //    if (-it.upperLeft.Y - adjustY > tnt.colHeight - it.height || colBreak)       // Time to wrap!
-            //    {
-            //        col++;
-            //        adjustX += tnt.colWidth + tnt.colSep;
-            //        adjustY = -it.upperLeft.Y;
-            //        colBreak = false;
-            //    }
-
-            //    // Actually draw the item based on its type
-            //    if (it is IITextNode)
-            //    {
-            //        IITextNode tn = it as IITextNode;
-            //        actuallyDrawText(tn.textString, tn.upperLeft.X + adjustX, tn.upperLeft.Y + adjustY, tn.textType, tn.textScriptType);
-            //    }
-            //    else if (it is IIImage)
-            //    {
-            //        IIImage img = it as IIImage;
-            //        actuallyDrawImage(img.htmlData, img.upperLeft.X + adjustX, img.upperLeft.Y + adjustY, img.widthPixels, img.heightPixels);
-            //    }
-            //    else if (it is IIAnnotationSymbol)
-            //    {
-            //        IIAnnotationSymbol ans = it as IIAnnotationSymbol;
-            //        actuallyDrawAnnotationSymbol(ans.id, ans.upperLeft.X + adjustX, ans.upperLeft.Y + adjustY, ans.bulletText);
-            //    }
-            //}
-        //}
+        
 
         /// <summary>
         /// Actually draws the image in the view
         /// </summary>
-        private void actuallyDrawImage(string htmlData, double relX, double relY, int width, int height)
+        private void ActuallyDrawImage(string htmlData, double relX, double relY, int width, int height)
         {
             using (Transaction tr = new Transaction(uidoc.Document, "Drawing image"))
             {
@@ -331,7 +254,7 @@ namespace CTEK_Rich_Text_Editor
         /// <summary>
         /// Actually draws the annotation symbol in the view
         /// </summary>
-        private void actuallyDrawAnnotationSymbol(string id, double relX, double relY, string bulletText)
+        private void ActuallyDrawAnnotationSymbol(string id, double relX, double relY, string bulletText)
         {
             if(id.Equals("DefaultBulletId"))
             {
@@ -378,7 +301,7 @@ namespace CTEK_Rich_Text_Editor
         /// <summary>
         /// Actually draws the text in the view. Do not pass in empty strings.
         /// </summary>
-        private double actuallyDrawText(string textString, double relX, double relY, TextNoteType textType, TextTools.TextScriptType textScript)
+        private double ActuallyDrawText(string textString, double relX, double relY, TextNoteType textType, TextTools.TextScriptType textScript)
         {
             if (textString.Trim().Equals(""))
                 throw new Exception("WE CANNOT DRAW EMPTY STRINGS");
@@ -401,7 +324,7 @@ namespace CTEK_Rich_Text_Editor
 
                 //2e6dff5e-d602-4fe8-a229-7e6bcf78aed0
 
-                switch (RevitVersionHandler.getRevitVersion())
+                switch (RevitVersionHandler.GetRevitVersion())
                 {
                     case 2015:
                         //textNote = uidoc.Document.Create.NewTextNote(masterView, pLoc, XYZ.BasisX, XYZ.BasisY, width, TextAlignFlags.TEF_ALIGN_LEFT | TextAlignFlags.TEF_ALIGN_TOP, textString);
@@ -414,7 +337,7 @@ namespace CTEK_Rich_Text_Editor
                     case 2017:
                     default:
                         // Temporary Reflection hack
-                        textNote = (TextNote) RevitVersionHandler.createTextNote2016.Invoke(null, new object[] { uidoc.Document, masterView.Id, pLoc, textString, textType.Id });
+                        textNote = (TextNote) RevitVersionHandler.CreateTextNote2016.Invoke(null, new object[] { uidoc.Document, masterView.Id, pLoc, textString, textType.Id });
                         // What it should actually be
                         //textNote = TextNote.Create(uidoc.Document, masterView.Id, pLoc, textString, textType.Id);
                         break;
@@ -438,7 +361,7 @@ namespace CTEK_Rich_Text_Editor
             // Use approx width if we don't have API for non-approx width yet
             double contentWidth;
 
-            switch (RevitVersionHandler.getRevitVersion())
+            switch (RevitVersionHandler.GetRevitVersion())
             {
                 case 2015:
                 case 2016:
@@ -489,16 +412,15 @@ namespace CTEK_Rich_Text_Editor
         /// Checks if we have any elements waiting to be drawn
         /// </summary>
         /// <returns></returns>
-        public bool hasElements()
+        public bool HasElements()
         {
             return newMasterNoteElements.Count > 0;
-            //return newMasterNoteIIs.Count > 0;
         }
 
         /// <summary>
         /// Deletes all the KNOWN elements in the master. In other words, we intentionally do not delete extra items that have been added to the note.
         /// </summary>
-        public void deleteMaster()
+        public void DeleteMaster()
         {
             Group masterGroup = uidoc.Document.GetElement(masterNote) as Group;
             masterGroup.UngroupMembers();
@@ -516,11 +438,10 @@ namespace CTEK_Rich_Text_Editor
             }
 
             // Delete the group type, so we don't clutter the model
-            //uidoc.Document.Delete(masterGroup.GetTypeId());
-            purgeIfNecessary(masterGroup);
+            PurgeIfNecessary(masterGroup);
         }
 
-        private void purgeIfNecessary(Group masterGroup)
+        private void PurgeIfNecessary(Group masterGroup)
         {
             FilteredElementCollector collectorUsed = new FilteredElementCollector(uidoc.Document);
 
@@ -549,7 +470,7 @@ namespace CTEK_Rich_Text_Editor
         /// Groups all the elements we have created
         /// </summary>
         /// <returns>The Group that gets made</returns>
-        public Group groupColumns()
+        public Group GroupColumns()
         {
             ICollection<ElementId> newCollection = new List<ElementId>();
             foreach (ElementId eid in newMasterNoteElements.Union(allExistingMasterNoteElements))
@@ -557,7 +478,7 @@ namespace CTEK_Rich_Text_Editor
                 newCollection.Add(eid);
             }
             Group group = uidoc.Document.Create.NewGroup(newCollection);
-            addMasterData(group);
+            AddMasterData(group);
 
             return group;
         }
@@ -566,7 +487,7 @@ namespace CTEK_Rich_Text_Editor
         /// Adds our master data (ex html, sizing) to the note
         /// </summary>
         /// <param name="group"></param>
-        private void addMasterData(Group group)
+        private void AddMasterData(Group group)
         {
             MasterSchema ms = new MasterSchema();
 

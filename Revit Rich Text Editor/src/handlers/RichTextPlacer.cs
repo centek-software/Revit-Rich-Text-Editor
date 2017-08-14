@@ -760,7 +760,7 @@ namespace CTEK_Rich_Text_Editor
                         DebugHandler.println("RTP", bulletId);
                     }
                     else if (node.Value.Trim().Equals("pagebreak"))
-                        ch.requestNewColumn();
+                        ch.RequestNewColumn();
 
                     break;
 

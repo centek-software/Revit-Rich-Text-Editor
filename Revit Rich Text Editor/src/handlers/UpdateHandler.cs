@@ -30,7 +30,7 @@ namespace CTEK_Rich_Text_Editor
         /// <summary>
         /// Redraws all the elements in the group
         /// </summary>
-        public void regenerate()
+        public void Regenerate()
         {
             MasterSchema ms = group.GetEntity<MasterSchema>();
 
@@ -55,28 +55,22 @@ namespace CTEK_Rich_Text_Editor
             {
                 tr.Start();
 
-                if (!ch.hasElements())      // If there are no elements to group, then don't do anything (so the note isn't destroyed)
+                if (!ch.HasElements())      // If there are no elements to group, then don't do anything (so the note isn't destroyed)
                 {
                     tr.Commit();
                     return;
                 }
 
-                ch.deleteMaster();
+                ch.DeleteMaster();
 
-                group = ch.groupColumns();
+                group = ch.GroupColumns();
                 ms = group.GetEntity<MasterSchema>();
 
                 tr.Commit();
             }
-
-            //using (Transaction tr = new Transaction(uidoc.Document, "Making slaves"))
-            //{
-            //    tr.Start();
-            //    tr.Commit();
-            //}
         }
 
-        public void updateHTML(string html)
+        public void UpdateHTML(string html)
         {
             MasterSchema ms = group.GetEntity<MasterSchema>();
 
@@ -90,15 +84,16 @@ namespace CTEK_Rich_Text_Editor
             }
         }
 
-        public void updateManyThings()
+        public void UpdateManyThings()
         {
-            updateSize();
+            // Okay I guess not
+            UpdateSize();
         }
 
         /// <summary>
         /// Updates the size info based on the resize box
         /// </summary>
-        public void updateSize()
+        private void UpdateSize()
         {
             MasterSchema ms = group.GetEntity<MasterSchema>();
             Document doc = uidoc.Document;
@@ -110,7 +105,7 @@ namespace CTEK_Rich_Text_Editor
             DetailCurve right1 = doc.GetElement(ms.rbRight1) as DetailCurve;
             DetailCurve right2 = doc.GetElement(ms.rbRight2) as DetailCurve;
 
-            XYZ position = getOrigin();
+            XYZ position = GetOrigin();
 
             if (position == null)
             {
@@ -191,7 +186,7 @@ namespace CTEK_Rich_Text_Editor
         /// Calculates the origin of the text note
         /// </summary>
         /// <returns></returns>
-        public XYZ getOrigin()
+        public XYZ GetOrigin()
         {
             MasterSchema ms = group.GetEntity<MasterSchema>();
 

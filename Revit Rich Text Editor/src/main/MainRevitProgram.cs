@@ -47,16 +47,16 @@ namespace CTEK_Rich_Text_Editor
             DebugHandler.println("LOAD", "New Instance");
 
             DebugHandler.println("LOAD", "Revit Version: [" + app.ControlledApplication.VersionBuild + "]");
-            DebugHandler.println("LOAD", "Revit Year: [" + RevitVersionHandler.getRevitVersion() + "]");
-            DebugHandler.println("LOAD", "Create note function: [" + (RevitVersionHandler.createTextNote2016 != null) + "]");
+            DebugHandler.println("LOAD", "Revit Year: [" + RevitVersionHandler.GetRevitVersion() + "]");
+            DebugHandler.println("LOAD", "Create note function: [" + (RevitVersionHandler.CreateTextNote2016 != null) + "]");
 
-            if (RevitVersionHandler.getRevitVersion() <= 2014)
+            if (RevitVersionHandler.GetRevitVersion() <= 2014)
             {
                 DebugHandler.println("LOAD", "This year is not supported. Not loading.");
                 return Result.Failed;
             }
 
-            if (RevitVersionHandler.needsUpdate(app.ControlledApplication.VersionBuild))
+            if (RevitVersionHandler.NeedsUpdate(app.ControlledApplication.VersionBuild))
             {
                 ShowDialog("Needs Update", "Due to a bug in this particular build of Autodesk Revit, you need to update to \"Autodesk Revit 2015 Update Release 3.\" The update is free and painless. The Rich Text Editor add on will be disabled until you do so.");
                 return Result.Failed;

@@ -67,8 +67,8 @@ namespace CTEK_Rich_Text_Editor
             status.Text = "Loading... give us a moment!";
 
             uh = new UpdateHandler(note as Group, uiapp);
-            uh.updateManyThings();
-            uh.regenerate();
+            uh.UpdateManyThings();
+            uh.Regenerate();
 
             browser.Load(path);
         }
@@ -88,8 +88,8 @@ namespace CTEK_Rich_Text_Editor
                 {
                     if (html != null)
                     {
-                        uh.updateHTML(html);
-                        uh.regenerate();
+                        uh.UpdateHTML(html);
+                        uh.Regenerate();
                     }
                 }
             }

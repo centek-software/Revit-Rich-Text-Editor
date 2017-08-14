@@ -39,8 +39,8 @@ namespace CTEK_Rich_Text_Editor
                 //===
 
                 UpdateHandler uh = new UpdateHandler(e as Group, uiApp);
-                uh.updateSize();
-                uh.regenerate();
+                uh.UpdateSize();
+                uh.Regenerate();
 
                 //===
                 transGroup.Assimilate();
