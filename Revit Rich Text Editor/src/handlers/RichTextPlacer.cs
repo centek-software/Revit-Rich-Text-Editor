@@ -443,11 +443,10 @@ namespace CTEK_Rich_Text_Editor
 
                         double noteWidth = Math.Abs(colEndX - colStartX);
                         double tableWidthFt = ImageHandler.pixelsToFeet((int)tableWidthInt, viewScale);
-                        if (tableWidthInt == 0 || tableWidthFt > noteWidth) //if there is no table width or the table is bigger than the note
+                        if (tableWidthInt == 0 || tableWidthFt > noteWidth) // if there is no table width or the table is bigger than the note
                         {
                             tableWidthFt = noteWidth; //snap table to note size
                         }
-
 
                         double originalColStartX = colStartX;
                         double originalColEndX = colEndX;
@@ -543,9 +542,6 @@ namespace CTEK_Rich_Text_Editor
                             using (Transaction tr = new Transaction(uidoc.Document, "Drawing box/cell lines"))
                             {
                                 tr.Start();
-                                //draw the large table outline (left and top)
-                                //ch.requestNewTableBox(table[0][0].colStart, table[0][table[0].Count - 1].colEnd, table[0][0].yStart, originalRelStartY);
-
                                 for (int i = 0; i < tableCells.Count; i++) //draw all the table lines (bottom and right)
                                 {
                                     Cell cell = tableCells[i];
@@ -1181,7 +1177,7 @@ namespace CTEK_Rich_Text_Editor
 
         private void MakeAnnotationSymbol(string id, double relX, double relY, string bulletChar, double height, double relYforCol)
         {
-            ch.requestDrawAnnotation(id, relX, relY, bulletChar, height, relYforCol);
+            ch.RequestDrawAnnotation(id, relX, relY, bulletChar, height, relYforCol);
         }
 
         private void Newline(ref double colStartX, ref double colEndX, ref double colStartY, ref double relStartX, ref double relStartY, TextNoteType textType)

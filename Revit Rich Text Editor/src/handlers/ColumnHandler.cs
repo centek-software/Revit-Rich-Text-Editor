@@ -169,7 +169,7 @@ namespace CTEK_Rich_Text_Editor
             return ActuallyDrawText(textString, relX + adjustX, relY + adjustY, textType, textScript);
         }
 
-        public void requestDrawAnnotation(string id, double relX, double relY, string bulletChar, double height, double relYforCol)
+        public void RequestDrawAnnotation(string id, double relX, double relY, string bulletChar, double height, double relYforCol)
         {
             // CheckNeedsColumn(relYforCol, height);
             var adjust = GetActualPosition(relYforCol, height);
@@ -179,42 +179,13 @@ namespace CTEK_Rich_Text_Editor
             ActuallyDrawAnnotationSymbol(id, relX + adjustX, relY + adjustY, bulletChar);
         }
 
-        //because table lines are drawn at the very end of the table rendering we have to do our own independent wrapping
-        double tableAdjustX = 0;
-        double tableAdjustY = 0;
-        //this method draws the complete outline around one cell (duplicate lines have to be made to account for table wrapping)
+        // this method draws the complete outline around one cell (duplicate lines have to be made to account for table wrapping)
+        // TODO: Don't create line which already exists exactly the same
         public void RequestNewCellBox(double relX, double endRelX, double relY, double endRelY) //this needs to be called from a transaction
         {
-            double startX;
-            double endX;
-            double startY;
-            double endY;
-
-            //DebugHandler.println("CH", "relY [" + relY + "], colHeight [" + tnt.colHeight + "], tableAdjustY[" + tableAdjustY + "]");
-            if (relY + tableAdjustY >= tnt.colHeight)
-            {
-                tableAdjustX += tnt.colWidth + tnt.colSep;
-                tableAdjustY = -relY;
-            }
-            startX = initialPos.X + relX + tableAdjustX;
-            endX = initialPos.X + endRelX + tableAdjustX;
-            startY = initialPos.Y - relY - tableAdjustY;
-            endY = initialPos.Y - endRelY - tableAdjustY;
-
-            if (Math.Abs(relY - endRelY) > 0)
-            {
-                UIApplication uiapp = uidoc.Application;
-                View view = uidoc.Document.ActiveView;
-                DetailCurve lineBottom = MakeLine(uiapp, view, startX, endY, endX, endY); // bottom line
-                DetailCurve lineRight = MakeLine(uiapp, view, endX, startY, endX, endY); // right line
-                newMasterNoteElements.Add(lineBottom.Id);
-                newMasterNoteElements.Add(lineRight.Id);
-
-                DetailCurve lineTop = MakeLine(uiapp, view, startX, startY, endX, startY); // top line
-                DetailCurve lineLeft = MakeLine(uiapp, view, startX, startY, startX, endY); // left line
-                newMasterNoteElements.Add(lineTop.Id);
-                newMasterNoteElements.Add(lineLeft.Id);
-            }
+            // TODO: This gets called with bad values so let's add line drawing to a future update
+            // var adjust = GetActualPosition(endRelY, 0);
+            // ActuallyDrawNewCellBox(relX + adjust.X, endRelX + adjust.X, relY + adjust.Y, endRelY + adjust.Y);
         }
 
         /// <summary>
@@ -235,21 +206,9 @@ namespace CTEK_Rich_Text_Editor
             needColumn++;
         }
 
+        // How many more empty columns need to be created now
         private int needColumn = 0;
-
-        //private void CheckNeedsColumn(double upperLeftY, double height)
-        //{
-        //    if (-upperLeftY - adjustY > tnt.colHeight - height || colBreak)       // Time to wrap!
-        //    {
-        //        col++;
-        //        adjustX += tnt.colWidth + tnt.colSep;
-        //        adjustY = -upperLeftY;
-        //        colBreak = false;
-        //    }
-        //}
-
-
-
+        
         /// <summary>
         /// Gets the actual position where we have to draw the element after taking wrapping into consideration.
         /// Assumes note position is (0,0). Origin handling is elsewhere.
@@ -275,11 +234,9 @@ namespace CTEK_Rich_Text_Editor
                     double adjustY = -baseY + (actualColumn - baseColumn) * tnt.colHeight;
 
                     if (actualColumn > baseColumn)
-                    {
                         needColumn++;
-                    }
 
-                    // If we need a new column
+                    // If we need a new column, request it and jump back to it to redo all the calculations
                     if (needColumn > 0)
                     {
                         RequestNewColumn(requestedY);
@@ -294,6 +251,31 @@ namespace CTEK_Rich_Text_Editor
 
             // Impossible, in principal
             return null;
+        }
+
+        private void ActuallyDrawNewCellBox(double relX, double endRelX, double relY, double endRelY) //this needs to be called from a transaction
+        {
+            // TODO: This gets called with bad values so let's not use it yet
+
+            //double startX = initialPos.X + relX;
+            //double endX = initialPos.X + endRelX;
+            //double startY = initialPos.Y - relY;
+            //double endY = initialPos.Y - endRelY;
+
+            //if (Math.Abs(relY - endRelY) > 0)
+            //{
+            //    UIApplication uiapp = uidoc.Application;
+            //    View view = uidoc.Document.ActiveView;
+            //    DetailCurve lineBottom = MakeLine(uiapp, view, startX, endY, endX, endY); // bottom line
+            //    DetailCurve lineRight = MakeLine(uiapp, view, endX, startY, endX, endY); // right line
+            //    newMasterNoteElements.Add(lineBottom.Id);
+            //    newMasterNoteElements.Add(lineRight.Id);
+
+            //    DetailCurve lineTop = MakeLine(uiapp, view, startX, startY, endX, startY); // top line
+            //    DetailCurve lineLeft = MakeLine(uiapp, view, startX, startY, startX, endY); // left line
+            //    newMasterNoteElements.Add(lineTop.Id);
+            //    newMasterNoteElements.Add(lineLeft.Id);
+            //}
         }
 
         /// <summary>
